@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { useStore } from "@/contexts/StoreContext";
-import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -18,7 +20,13 @@ const stagger = {
 
 export default function Storefront() {
   const { settings, products, categories } = useStore();
+  const { addToCart, totalItems, setIsCartOpen } = useCart();
   const featured = products.filter(p => p.featured);
+
+  const handleAddToCart = (product: typeof products[0]) => {
+    addToCart(product);
+    toast.success(`${product.name} added to cart`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,11 +52,26 @@ export default function Storefront() {
             <a href="#categories" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Categories</a>
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</a>
           </div>
-          <Link to="/admin">
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Admin Panel
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative"
+              onClick={() => setIsCartOpen(true)}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Button>
-          </Link>
+            <Link to="/admin">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Admin Panel
+              </Button>
+            </Link>
+          </div>
         </div>
       </motion.nav>
 
@@ -140,7 +163,7 @@ export default function Storefront() {
                   <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-xl font-bold text-foreground">${product.price}</span>
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => handleAddToCart(product)}>
                       Add to Cart
                     </Button>
                   </div>
@@ -177,6 +200,13 @@ export default function Storefront() {
                         <span className="text-xs text-destructive font-medium">Low stock</span>
                       )}
                     </div>
+                    <Button 
+                      size="sm" 
+                      className="w-full mt-3"
+                      onClick={() => handleAddToCart(product)}
+                    >
+                      Add to Cart
+                    </Button>
                   </div>
                 </motion.div>
               ))}
