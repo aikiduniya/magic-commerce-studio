@@ -52,11 +52,26 @@ export default function Storefront() {
             <a href="#categories" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Categories</a>
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</a>
           </div>
-          <Link to="/admin">
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Admin Panel
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative"
+              onClick={() => setIsCartOpen(true)}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Button>
-          </Link>
+            <Link to="/admin">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Admin Panel
+              </Button>
+            </Link>
+          </div>
         </div>
       </motion.nav>
 
