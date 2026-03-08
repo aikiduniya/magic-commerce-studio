@@ -24,7 +24,7 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
 
 const fadeIn = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
   exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
 };
 
