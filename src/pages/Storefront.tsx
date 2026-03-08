@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { useStore } from "@/contexts/StoreContext";
-import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
