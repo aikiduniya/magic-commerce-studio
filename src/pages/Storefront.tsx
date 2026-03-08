@@ -200,6 +200,13 @@ export default function Storefront() {
                         <span className="text-xs text-destructive font-medium">Low stock</span>
                       )}
                     </div>
+                    <Button 
+                      size="sm" 
+                      className="w-full mt-3"
+                      onClick={() => handleAddToCart(product)}
+                    >
+                      Add to Cart
+                    </Button>
                   </div>
                 </motion.div>
               ))}
