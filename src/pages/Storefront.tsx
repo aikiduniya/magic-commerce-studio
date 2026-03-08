@@ -163,7 +163,7 @@ export default function Storefront() {
                   <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-xl font-bold text-foreground">${product.price}</span>
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => handleAddToCart(product)}>
                       Add to Cart
                     </Button>
                   </div>
