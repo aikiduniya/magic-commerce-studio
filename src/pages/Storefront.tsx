@@ -20,7 +20,13 @@ const stagger = {
 
 export default function Storefront() {
   const { settings, products, categories } = useStore();
+  const { addToCart, totalItems, setIsCartOpen } = useCart();
   const featured = products.filter(p => p.featured);
+
+  const handleAddToCart = (product: typeof products[0]) => {
+    addToCart(product);
+    toast.success(`${product.name} added to cart`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
