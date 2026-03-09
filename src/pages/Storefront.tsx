@@ -29,6 +29,7 @@ export default function Storefront() {
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   // Filter products
   const filteredProducts = useMemo(() => {
