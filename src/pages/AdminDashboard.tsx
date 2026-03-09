@@ -167,6 +167,100 @@ function DashboardPanel() {
   );
 }
 
+function BannersPanel() {
+  const { banners, addBanner, updateBanner, deleteBanner } = useStore();
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState({ title: "", subtitle: "", image: "", buttonText: "", buttonLink: "", active: true });
+
+  const resetForm = () => { setForm({ title: "", subtitle: "", image: "", buttonText: "", buttonLink: "", active: true }); setEditId(null); setShowForm(false); };
+
+  const handleSubmit = () => {
+    if (!form.title || !form.image) return;
+    if (editId) {
+      updateBanner(editId, form);
+    } else {
+      addBanner({ id: Date.now().toString(), ...form });
+    }
+    resetForm();
+  };
+
+  const startEdit = (b: Banner) => {
+    setForm({ title: b.title, subtitle: b.subtitle, image: b.image, buttonText: b.buttonText, buttonLink: b.buttonLink, active: b.active });
+    setEditId(b.id);
+    setShowForm(true);
+  };
+
+  return (
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+      <div className="flex justify-between items-center">
+        <p className="text-admin-text-muted text-sm">{banners.length} banners • {banners.filter(b => b.active).length} active</p>
+        <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Plus className="h-4 w-4" /> Add Banner
+        </Button>
+      </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="admin-card p-5 space-y-4 overflow-hidden">
+            <div className="flex justify-between items-center">
+              <h3 className="font-display font-semibold text-admin-text">{editId ? "Edit" : "Add"} Banner</h3>
+              <button onClick={resetForm}><X className="h-5 w-5 text-admin-text-muted" /></button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input placeholder="Banner title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
+              <Input placeholder="Subtitle (optional)" value={form.subtitle} onChange={e => setForm({ ...form, subtitle: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
+              <Input placeholder="Image URL" value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text md:col-span-2" />
+              <Input placeholder="Button text (optional)" value={form.buttonText} onChange={e => setForm({ ...form, buttonText: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
+              <Input placeholder="Button link (e.g. #products)" value={form.buttonLink} onChange={e => setForm({ ...form, buttonLink: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch checked={form.active} onCheckedChange={(checked) => setForm({ ...form, active: checked })} />
+              <span className="text-sm text-admin-text-muted">Active (visible on storefront)</span>
+            </div>
+            <Button onClick={handleSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+              <Save className="h-4 w-4" /> {editId ? "Update" : "Add"} Banner
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="grid gap-4">
+        {banners.map((b, i) => (
+          <motion.div key={b.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="admin-card-hover overflow-hidden group">
+            <div className="flex flex-col md:flex-row">
+              <div className="md:w-64 h-36 overflow-hidden shrink-0">
+                <img src={b.image} alt={b.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div className="flex-1 p-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-display font-semibold text-admin-text">{b.title}</h4>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${b.active ? "bg-badge-success/15 text-badge-success" : "bg-admin-surface text-admin-text-muted"}`}>
+                      {b.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  {b.subtitle && <p className="text-sm text-admin-text-muted mt-1">{b.subtitle}</p>}
+                  {b.buttonText && <p className="text-xs text-admin-text-muted mt-2">Button: {b.buttonText} → {b.buttonLink}</p>}
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <Switch checked={b.active} onCheckedChange={(checked) => updateBanner(b.id, { active: checked })} />
+                  <button onClick={() => startEdit(b)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-badge-info transition-colors">
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => deleteBanner(b.id)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-destructive transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 function ProductsPanel() {
   const { products, addProduct, updateProduct, deleteProduct, categories } = useStore();
   const [showForm, setShowForm] = useState(false);
