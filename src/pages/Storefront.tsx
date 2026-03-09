@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
 import ProductQuickViewModal from "@/components/ProductQuickViewModal";
+import BannerSlider from "@/components/BannerSlider";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
