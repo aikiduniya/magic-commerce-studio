@@ -21,12 +21,12 @@ interface ProductQuickViewModalProps {
 
 const imageVariants = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const contentVariants = {
   hidden: { opacity: 0, x: 20 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 export default function ProductQuickViewModal({ product, isOpen, onClose }: ProductQuickViewModalProps) {
