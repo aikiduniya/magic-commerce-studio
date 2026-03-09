@@ -91,6 +91,7 @@ export default function AdminDashboard() {
         <main className="p-6">
           <AnimatePresence mode="wait">
             {activeTab === "dashboard" && <DashboardPanel key="dashboard" />}
+            {activeTab === "banners" && <BannersPanel key="banners" />}
             {activeTab === "products" && <ProductsPanel key="products" />}
             {activeTab === "categories" && <CategoriesPanel key="categories" />}
             {activeTab === "orders" && <OrdersPanel key="orders" />}
