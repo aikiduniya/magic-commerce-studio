@@ -4,7 +4,7 @@ import { useCart } from "@/contexts/CartContext";
 import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import ProductCard from "@/components/ProductCard";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -20,13 +20,8 @@ const stagger = {
 
 export default function Storefront() {
   const { settings, products, categories } = useStore();
-  const { addToCart, totalItems, setIsCartOpen } = useCart();
+  const { totalItems, setIsCartOpen } = useCart();
   const featured = products.filter(p => p.featured);
-
-  const handleAddToCart = (product: typeof products[0]) => {
-    addToCart(product);
-    toast.success(`${product.name} added to cart`);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,9 +56,14 @@ export default function Storefront() {
             >
               <ShoppingCart className="h-4 w-4" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                <motion.span
+                  key={totalItems}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center"
+                >
                   {totalItems}
-                </span>
+                </motion.span>
               )}
             </Button>
             <Link to="/admin">
@@ -143,32 +143,7 @@ export default function Storefront() {
           </motion.p>
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {featured.map((product, i) => (
-              <motion.div
-                key={product.id}
-                variants={fadeUp}
-                custom={i + 2}
-                whileHover={{ y: -6 }}
-                className="group rounded-xl overflow-hidden bg-card shadow-card hover:shadow-card-hover transition-shadow border border-border"
-              >
-                <div className="aspect-square overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </div>
-                <div className="p-5">
-                  <p className="text-xs font-medium text-primary uppercase tracking-wider">{product.category}</p>
-                  <h3 className="mt-1 font-display font-semibold text-lg text-foreground">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xl font-bold text-foreground">${product.price}</span>
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => handleAddToCart(product)}>
-                      Add to Cart
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
+              <ProductCard key={product.id} product={product} index={i + 2} variant="featured" />
             ))}
           </div>
         </motion.div>
@@ -181,34 +156,7 @@ export default function Storefront() {
             <motion.h2 variants={fadeUp} custom={0} className="font-display text-3xl font-bold text-foreground">All Products</motion.h2>
             <div className="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {products.map((product, i) => (
-                <motion.div
-                  key={product.id}
-                  variants={fadeUp}
-                  custom={i}
-                  whileHover={{ y: -4 }}
-                  className="group rounded-xl overflow-hidden bg-card shadow-card hover:shadow-card-hover transition-shadow border border-border"
-                >
-                  <div className="aspect-square overflow-hidden">
-                    <img src={product.image} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </div>
-                  <div className="p-4">
-                    <p className="text-xs text-primary font-medium uppercase tracking-wider">{product.category}</p>
-                    <h3 className="mt-1 font-display font-medium text-foreground text-sm">{product.name}</h3>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="font-bold text-foreground">${product.price}</span>
-                      {product.stock < 20 && (
-                        <span className="text-xs text-destructive font-medium">Low stock</span>
-                      )}
-                    </div>
-                    <Button 
-                      size="sm" 
-                      className="w-full mt-3"
-                      onClick={() => handleAddToCart(product)}
-                    >
-                      Add to Cart
-                    </Button>
-                  </div>
-                </motion.div>
+                <ProductCard key={product.id} product={product} index={i} variant="compact" />
               ))}
             </div>
           </motion.div>
