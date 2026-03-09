@@ -7,6 +7,10 @@ import { StoreProvider } from "@/contexts/StoreContext";
 import { CartProvider } from "@/contexts/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 import Storefront from "./pages/Storefront";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import Categories from "./pages/Categories";
+import CategoryDetail from "./pages/CategoryDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
@@ -24,6 +28,10 @@ const App = () => (
             <CartDrawer />
             <Routes>
               <Route path="/" element={<Storefront />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/products/:id" element={<ProductDetail />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/categories/:slug" element={<CategoryDetail />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="*" element={<NotFound />} />
