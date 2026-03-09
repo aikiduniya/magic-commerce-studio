@@ -2,11 +2,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Percent } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function CartDrawer() {
-  const { items, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart();
+  const { items, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, totalPrice, totalItems, appliedCoupon, discountAmount, finalPrice } = useCart();
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
@@ -20,9 +20,13 @@ export default function CartDrawer() {
 
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4"
+            >
               <ShoppingBag className="h-8 w-8 text-muted-foreground" />
-            </div>
+            </motion.div>
             <h3 className="font-display font-semibold text-lg text-foreground">Your cart is empty</h3>
             <p className="text-sm text-muted-foreground mt-1">Add some products to get started</p>
             <Button className="mt-6" onClick={() => setIsCartOpen(false)}>
@@ -87,10 +91,41 @@ export default function CartDrawer() {
             </div>
 
             <div className="border-t border-border pt-4 space-y-4">
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total</span>
+              {/* Subtotal */}
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
                 <span>${totalPrice.toFixed(2)}</span>
               </div>
+
+              {/* Coupon discount */}
+              <AnimatePresence>
+                {appliedCoupon && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex justify-between text-sm"
+                  >
+                    <span className="text-primary flex items-center gap-1">
+                      <Percent className="h-3 w-3" />
+                      {appliedCoupon.label}
+                    </span>
+                    <span className="text-primary font-medium">-${discountAmount.toFixed(2)}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Total */}
+              <div className="flex justify-between text-lg font-semibold pt-2 border-t border-border">
+                <span>Total</span>
+                <div className="text-right">
+                  {appliedCoupon && (
+                    <span className="text-sm line-through text-muted-foreground mr-2">${totalPrice.toFixed(2)}</span>
+                  )}
+                  <span>${finalPrice.toFixed(2)}</span>
+                </div>
+              </div>
+
               <SheetFooter className="flex-col gap-2 sm:flex-col">
                 <Link to="/checkout" className="w-full" onClick={() => setIsCartOpen(false)}>
                   <Button className="w-full" size="lg">
