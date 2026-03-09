@@ -19,6 +19,16 @@ export interface Category {
   productCount: number;
 }
 
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  buttonText: string;
+  buttonLink: string;
+  active: boolean;
+}
+
 export interface Order {
   id: string;
   customer: string;
