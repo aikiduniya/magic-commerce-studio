@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStore } from "@/contexts/StoreContext";
+import { useStore, Product } from "@/contexts/StoreContext";
 import { useCart } from "@/contexts/CartContext";
 import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart, Search, X, SlidersHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
+import ProductQuickViewModal from "@/components/ProductQuickViewModal";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
