@@ -69,6 +69,10 @@ interface StoreContextType {
   orders: Order[];
   updateOrderStatus: (id: string, status: Order["status"]) => void;
   visitors: Visitor[];
+  banners: Banner[];
+  addBanner: (b: Banner) => void;
+  updateBanner: (id: string, b: Partial<Banner>) => void;
+  deleteBanner: (id: string) => void;
 }
 
 const defaultSettings: StoreSettings = {
