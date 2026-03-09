@@ -140,11 +140,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>(() => loadState("store-categories", defaultCategories));
   const [orders, setOrders] = useState<Order[]>(() => loadState("store-orders", defaultOrders));
   const [visitors] = useState<Visitor[]>(() => loadState("store-visitors", defaultVisitors));
+  const [banners, setBanners] = useState<Banner[]>(() => loadState("store-banners", defaultBanners));
 
   useEffect(() => { localStorage.setItem("store-settings", JSON.stringify(settings)); }, [settings]);
   useEffect(() => { localStorage.setItem("store-products", JSON.stringify(products)); }, [products]);
   useEffect(() => { localStorage.setItem("store-categories", JSON.stringify(categories)); }, [categories]);
   useEffect(() => { localStorage.setItem("store-orders", JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem("store-banners", JSON.stringify(banners)); }, [banners]);
 
   // Apply theme on mount
   useEffect(() => {
