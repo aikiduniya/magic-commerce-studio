@@ -19,6 +19,16 @@ export interface Category {
   productCount: number;
 }
 
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  buttonText: string;
+  buttonLink: string;
+  active: boolean;
+}
+
 export interface Order {
   id: string;
   customer: string;
@@ -59,6 +69,10 @@ interface StoreContextType {
   orders: Order[];
   updateOrderStatus: (id: string, status: Order["status"]) => void;
   visitors: Visitor[];
+  banners: Banner[];
+  addBanner: (b: Banner) => void;
+  updateBanner: (id: string, b: Partial<Banner>) => void;
+  deleteBanner: (id: string) => void;
 }
 
 const defaultSettings: StoreSettings = {
@@ -105,6 +119,12 @@ const defaultVisitors: Visitor[] = [
   { id: "v8", page: "/products/5", date: "2026-03-05", device: "Desktop", country: "US" },
 ];
 
+const defaultBanners: Banner[] = [
+  { id: "1", title: "Spring Collection 2026", subtitle: "Discover our latest arrivals with up to 40% off", image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920", buttonText: "Shop Now", buttonLink: "#products", active: true },
+  { id: "2", title: "Premium Electronics", subtitle: "The latest tech at unbeatable prices", image: "https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1920", buttonText: "Explore", buttonLink: "#products", active: true },
+  { id: "3", title: "Free Shipping", subtitle: "On all orders over $100 this week only", image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1920", buttonText: "Learn More", buttonLink: "#features", active: true },
+];
+
 const StoreContext = createContext<StoreContextType | null>(null);
 
 function loadState<T>(key: string, fallback: T): T {
@@ -120,11 +140,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>(() => loadState("store-categories", defaultCategories));
   const [orders, setOrders] = useState<Order[]>(() => loadState("store-orders", defaultOrders));
   const [visitors] = useState<Visitor[]>(() => loadState("store-visitors", defaultVisitors));
+  const [banners, setBanners] = useState<Banner[]>(() => loadState("store-banners", defaultBanners));
 
   useEffect(() => { localStorage.setItem("store-settings", JSON.stringify(settings)); }, [settings]);
   useEffect(() => { localStorage.setItem("store-products", JSON.stringify(products)); }, [products]);
   useEffect(() => { localStorage.setItem("store-categories", JSON.stringify(categories)); }, [categories]);
   useEffect(() => { localStorage.setItem("store-orders", JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem("store-banners", JSON.stringify(banners)); }, [banners]);
 
   // Apply theme on mount
   useEffect(() => {
@@ -154,6 +176,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = (id: string, status: Order["status"]) =>
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
 
+  const addBanner = (b: Banner) => setBanners(prev => [...prev, b]);
+  const updateBanner = (id: string, b: Partial<Banner>) =>
+    setBanners(prev => prev.map(item => item.id === id ? { ...item, ...b } : item));
+  const deleteBanner = (id: string) => setBanners(prev => prev.filter(b => b.id !== id));
+
   return (
     <StoreContext.Provider value={{
       settings, updateSettings,
@@ -161,6 +188,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       categories, addCategory, updateCategory, deleteCategory,
       orders, updateOrderStatus,
       visitors,
+      banners, addBanner, updateBanner, deleteBanner,
     }}>
       {children}
     </StoreContext.Provider>

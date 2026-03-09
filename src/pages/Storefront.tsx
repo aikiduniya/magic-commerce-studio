@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
 import ProductQuickViewModal from "@/components/ProductQuickViewModal";
+import BannerSlider from "@/components/BannerSlider";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -101,33 +102,8 @@ export default function Storefront() {
         </div>
       </motion.nav>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 hero-gradient opacity-10" />
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="relative max-w-7xl mx-auto px-6 py-24 md:py-36"
-        >
-          <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-6">
-            <Star className="h-3.5 w-3.5" /> New Collection Available
-          </motion.div>
-          <motion.h1 variants={fadeUp} custom={1} className="font-display text-5xl md:text-7xl font-bold leading-tight max-w-3xl">
-            Discover <span className="gradient-text">Premium</span> Products
-          </motion.h1>
-          <motion.p variants={fadeUp} custom={2} className="mt-6 text-lg text-muted-foreground max-w-xl">
-            Curated collections of the finest products, designed for those who appreciate quality and elegance.
-          </motion.p>
-          <motion.div variants={fadeUp} custom={3} className="mt-8 flex gap-4">
-            <a href="#products">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-                Shop Now <ArrowRight className="h-4 w-4" />
-              </Button>
-            </a>
-          </motion.div>
-        </motion.div>
-      </section>
+      {/* Banner Slider */}
+      <BannerSlider />
 
       {/* Features */}
       <section id="features" className="border-y border-border bg-secondary/30">
