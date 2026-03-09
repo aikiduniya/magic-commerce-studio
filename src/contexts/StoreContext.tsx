@@ -176,6 +176,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = (id: string, status: Order["status"]) =>
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
 
+  const addBanner = (b: Banner) => setBanners(prev => [...prev, b]);
+  const updateBanner = (id: string, b: Partial<Banner>) =>
+    setBanners(prev => prev.map(item => item.id === id ? { ...item, ...b } : item));
+  const deleteBanner = (id: string) => setBanners(prev => prev.filter(b => b.id !== id));
+
   return (
     <StoreContext.Provider value={{
       settings, updateSettings,
@@ -183,6 +188,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       categories, addCategory, updateCategory, deleteCategory,
       orders, updateOrderStatus,
       visitors,
+      banners, addBanner, updateBanner, deleteBanner,
     }}>
       {children}
     </StoreContext.Provider>
