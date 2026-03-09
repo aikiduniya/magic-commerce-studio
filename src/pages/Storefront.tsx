@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStore } from "@/contexts/StoreContext";
+import { useStore, Product } from "@/contexts/StoreContext";
 import { useCart } from "@/contexts/CartContext";
 import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart, Search, X, SlidersHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
+import ProductQuickViewModal from "@/components/ProductQuickViewModal";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -28,6 +29,7 @@ export default function Storefront() {
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   // Filter products
   const filteredProducts = useMemo(() => {
@@ -167,7 +169,9 @@ export default function Storefront() {
           </motion.p>
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {featured.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i + 2} variant="featured" />
+              <div key={product.id} onClick={() => setQuickViewProduct(product)}>
+                <ProductCard product={product} index={i + 2} variant="featured" />
+              </div>
             ))}
           </div>
         </motion.div>
@@ -254,7 +258,9 @@ export default function Storefront() {
                   className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
                 >
                   {filteredProducts.map((product, i) => (
-                    <ProductCard key={product.id} product={product} index={i} variant="compact" />
+                    <div key={product.id} onClick={() => setQuickViewProduct(product)}>
+                      <ProductCard product={product} index={i} variant="compact" />
+                    </div>
                   ))}
                 </motion.div>
               ) : (
@@ -329,6 +335,13 @@ export default function Storefront() {
           </div>
         </div>
       </footer>
+
+      {/* Quick View Modal */}
+      <ProductQuickViewModal
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </div>
   );
 }
