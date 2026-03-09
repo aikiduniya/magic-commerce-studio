@@ -1,20 +1,22 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStore, Product, Category } from "@/contexts/StoreContext";
+import { useStore, Product, Category, Banner } from "@/contexts/StoreContext";
 import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderOpen, ShoppingCart, Users, Settings,
   Plus, Trash2, Edit, ArrowLeft, Upload, TrendingUp, DollarSign,
-  Eye, Box, ChevronDown, X, Save, Image as ImageIcon
+  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
-type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "settings";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "banners", label: "Banners", icon: Sparkles },
   { id: "products", label: "Products", icon: Package },
   { id: "categories", label: "Categories", icon: FolderOpen },
   { id: "orders", label: "Orders", icon: ShoppingCart },
