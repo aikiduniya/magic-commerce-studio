@@ -258,7 +258,9 @@ export default function Storefront() {
                   className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
                 >
                   {filteredProducts.map((product, i) => (
-                    <ProductCard key={product.id} product={product} index={i} variant="compact" />
+                    <div key={product.id} onClick={() => setQuickViewProduct(product)}>
+                      <ProductCard product={product} index={i} variant="compact" />
+                    </div>
                   ))}
                 </motion.div>
               ) : (
