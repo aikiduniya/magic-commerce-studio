@@ -119,6 +119,12 @@ const defaultVisitors: Visitor[] = [
   { id: "v8", page: "/products/5", date: "2026-03-05", device: "Desktop", country: "US" },
 ];
 
+const defaultBanners: Banner[] = [
+  { id: "1", title: "Spring Collection 2026", subtitle: "Discover our latest arrivals with up to 40% off", image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920", buttonText: "Shop Now", buttonLink: "#products", active: true },
+  { id: "2", title: "Premium Electronics", subtitle: "The latest tech at unbeatable prices", image: "https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1920", buttonText: "Explore", buttonLink: "#products", active: true },
+  { id: "3", title: "Free Shipping", subtitle: "On all orders over $100 this week only", image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1920", buttonText: "Learn More", buttonLink: "#features", active: true },
+];
+
 const StoreContext = createContext<StoreContextType | null>(null);
 
 function loadState<T>(key: string, fallback: T): T {
