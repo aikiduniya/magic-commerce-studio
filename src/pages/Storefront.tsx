@@ -1,9 +1,11 @@
-import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/contexts/StoreContext";
 import { useCart } from "@/contexts/CartContext";
-import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart } from "lucide-react";
+import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart, Search, X, SlidersHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
 
 const fadeUp = {
@@ -22,6 +24,28 @@ export default function Storefront() {
   const { settings, products, categories } = useStore();
   const { totalItems, setIsCartOpen } = useCart();
   const featured = products.filter(p => p.featured);
+
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Filter products
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch = searchQuery === "" || 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === null || product.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchQuery, selectedCategory]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory(null);
+  };
+
+  const hasActiveFilters = searchQuery !== "" || selectedCategory !== null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,16 +173,108 @@ export default function Storefront() {
         </motion.div>
       </section>
 
-      {/* All Products */}
+      {/* All Products with Search & Filter */}
       <section className="bg-secondary/30 py-20">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.h2 variants={fadeUp} custom={0} className="font-display text-3xl font-bold text-foreground">All Products</motion.h2>
-            <div className="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {products.map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} variant="compact" />
-              ))}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+              <div>
+                <motion.h2 variants={fadeUp} custom={0} className="font-display text-3xl font-bold text-foreground">
+                  All Products
+                </motion.h2>
+                <motion.p variants={fadeUp} custom={1} className="mt-1 text-muted-foreground">
+                  {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} found
+                </motion.p>
+              </div>
+
+              {/* Search Bar */}
+              <motion.div variants={fadeUp} custom={1} className="relative w-full md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-10 bg-background"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </motion.div>
             </div>
+
+            {/* Category Filters */}
+            <motion.div variants={fadeUp} custom={2} className="flex flex-wrap items-center gap-2 mb-8">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mr-2">
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Filter:</span>
+              </div>
+              <Button
+                variant={selectedCategory === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(null)}
+                className="rounded-full"
+              >
+                All
+              </Button>
+              {categories.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant={selectedCategory === cat.name ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className="rounded-full"
+                >
+                  {cat.name}
+                </Button>
+              ))}
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="text-muted-foreground hover:text-foreground ml-2"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
+                </Button>
+              )}
+            </motion.div>
+
+            {/* Products Grid */}
+            <AnimatePresence mode="popLayout">
+              {filteredProducts.length > 0 ? (
+                <motion.div 
+                  layout
+                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
+                >
+                  {filteredProducts.map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={i} variant="compact" />
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="text-center py-16"
+                >
+                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-foreground">No products found</h3>
+                  <p className="text-muted-foreground mt-1">Try adjusting your search or filters</p>
+                  <Button variant="outline" onClick={clearFilters} className="mt-4">
+                    Clear Filters
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </section>
@@ -174,6 +290,10 @@ export default function Storefront() {
                 variants={fadeUp}
                 custom={i + 1}
                 whileHover={{ scale: 1.03 }}
+                onClick={() => {
+                  setSelectedCategory(cat.name);
+                  document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
                 className="relative rounded-xl overflow-hidden aspect-[4/5] group cursor-pointer"
               >
                 <img src={cat.image} alt={cat.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
