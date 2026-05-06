@@ -67,6 +67,7 @@ interface StoreContextType {
   updateCategory: (id: string, c: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
   orders: Order[];
+  addOrder: (o: Omit<Order, "id" | "date" | "status"> & { status?: Order["status"] }) => Order;
   updateOrderStatus: (id: string, status: Order["status"]) => void;
   visitors: Visitor[];
   banners: Banner[];
