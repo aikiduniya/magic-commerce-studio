@@ -51,6 +51,20 @@ export default function Checkout() {
     e.preventDefault();
     setIsProcessing(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const order = addOrder({
+      customer: `${formData.firstName} ${formData.lastName}`.trim() || "Guest",
+      email: formData.email,
+      items: items.map((item) => ({
+        productId: item.product.id,
+        name: item.product.name,
+        qty: item.quantity,
+        price: item.product.price * item.quantity,
+      })),
+      total: Number(finalPrice.toFixed(2)),
+    });
+    setPlacedOrderId(order.id);
+
     setIsProcessing(false);
     setStep("success");
     clearCart();
