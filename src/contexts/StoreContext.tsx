@@ -177,6 +177,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = (id: string, status: Order["status"]) =>
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
 
+  const addOrder: StoreContextType["addOrder"] = (data) => {
+    const seq = String(orders.length + 1).padStart(3, "0");
+    const newOrder: Order = {
+      id: `ORD-${seq}`,
+      date: new Date().toISOString().slice(0, 10),
+      status: data.status ?? "pending",
+      customer: data.customer,
+      email: data.email,
+      items: data.items,
+      total: data.total,
+    };
+    setOrders(prev => [newOrder, ...prev]);
+    return newOrder;
+  };
+
   const addBanner = (b: Banner) => setBanners(prev => [...prev, b]);
   const updateBanner = (id: string, b: Partial<Banner>) =>
     setBanners(prev => prev.map(item => item.id === id ? { ...item, ...b } : item));
