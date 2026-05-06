@@ -202,7 +202,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       settings, updateSettings,
       products, addProduct, updateProduct, deleteProduct,
       categories, addCategory, updateCategory, deleteCategory,
-      orders, updateOrderStatus,
+      orders, addOrder, updateOrderStatus,
       visitors,
       banners, addBanner, updateBanner, deleteBanner,
     }}>
