@@ -374,9 +374,9 @@ function CategoriesPanel() {
               <h3 className="font-display font-semibold text-admin-text">{editId ? "Edit" : "Add"} Category</h3>
               <button onClick={resetForm}><X className="h-5 w-5 text-admin-text-muted" /></button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ImageUploadField value={form.image} onChange={(v) => setForm({ ...form, image: v })} label="Category Image" aspect="video" />
+            <div>
               <Input placeholder="Category name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
-              <Input placeholder="Image URL" value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
             </div>
             <Button onClick={handleSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
               <Save className="h-4 w-4" /> {editId ? "Update" : "Add"}
