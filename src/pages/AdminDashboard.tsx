@@ -208,10 +208,10 @@ function BannersPanel() {
               <h3 className="font-display font-semibold text-admin-text">{editId ? "Edit" : "Add"} Banner</h3>
               <button onClick={resetForm}><X className="h-5 w-5 text-admin-text-muted" /></button>
             </div>
+            <ImageUploadField value={form.image} onChange={(v) => setForm({ ...form, image: v })} label="Banner Image" aspect="wide" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input placeholder="Banner title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
               <Input placeholder="Subtitle (optional)" value={form.subtitle} onChange={e => setForm({ ...form, subtitle: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
-              <Input placeholder="Image URL" value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text md:col-span-2" />
               <Input placeholder="Button text (optional)" value={form.buttonText} onChange={e => setForm({ ...form, buttonText: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
               <Input placeholder="Button link (e.g. #products)" value={form.buttonLink} onChange={e => setForm({ ...form, buttonLink: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
             </div>
