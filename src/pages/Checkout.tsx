@@ -121,7 +121,7 @@ export default function Checkout() {
               <div className="mt-6 p-4 rounded-lg bg-secondary/50">
                 <p className="text-sm text-muted-foreground">Order number</p>
                 <p className="font-mono font-semibold text-foreground">
-                  ORD-{Math.random().toString(36).substr(2, 9).toUpperCase()}
+                  {placedOrderId || "ORD-PENDING"}
                 </p>
               </div>
               <Link to="/">
