@@ -17,12 +17,13 @@ const fadeUp = {
 
 export default function Checkout() {
   const { items, totalPrice, clearCart, appliedCoupon, applyCoupon, removeCoupon, discountAmount, finalPrice } = useCart();
-  const { settings } = useStore();
+  const { settings, addOrder } = useStore();
   const navigate = useNavigate();
   const [step, setStep] = useState<"details" | "payment" | "success">("details");
   const [isProcessing, setIsProcessing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
+  const [placedOrderId, setPlacedOrderId] = useState<string>("");
 
   const [formData, setFormData] = useState({
     email: "",
