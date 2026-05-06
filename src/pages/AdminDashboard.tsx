@@ -302,16 +302,16 @@ function ProductsPanel() {
               <h3 className="font-display font-semibold text-admin-text">{editId ? "Edit" : "Add"} Product</h3>
               <button onClick={resetForm}><X className="h-5 w-5 text-admin-text-muted" /></button>
             </div>
+            <ImageUploadField value={form.image} onChange={(v) => setForm({ ...form, image: v })} label="Product Image" aspect="square" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input placeholder="Product name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
               <Input placeholder="Price" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
-              <Input placeholder="Image URL" value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
               <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="rounded-lg px-3 py-2 text-sm bg-admin-surface border border-admin-border text-admin-text">
                 <option value="">Select Category</option>
                 {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
               </select>
               <Input placeholder="Stock" type="number" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
-              <Textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
+              <Textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text md:col-span-2" />
             </div>
             <Button onClick={handleSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
               <Save className="h-4 w-4" /> {editId ? "Update" : "Add"} Product
