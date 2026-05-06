@@ -67,6 +67,7 @@ interface StoreContextType {
   updateCategory: (id: string, c: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
   orders: Order[];
+  addOrder: (o: Omit<Order, "id" | "date" | "status"> & { status?: Order["status"] }) => Order;
   updateOrderStatus: (id: string, status: Order["status"]) => void;
   visitors: Visitor[];
   banners: Banner[];
@@ -176,6 +177,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = (id: string, status: Order["status"]) =>
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
 
+  const addOrder: StoreContextType["addOrder"] = (data) => {
+    const seq = String(orders.length + 1).padStart(3, "0");
+    const newOrder: Order = {
+      id: `ORD-${seq}`,
+      date: new Date().toISOString().slice(0, 10),
+      status: data.status ?? "pending",
+      customer: data.customer,
+      email: data.email,
+      items: data.items,
+      total: data.total,
+    };
+    setOrders(prev => [newOrder, ...prev]);
+    return newOrder;
+  };
+
   const addBanner = (b: Banner) => setBanners(prev => [...prev, b]);
   const updateBanner = (id: string, b: Partial<Banner>) =>
     setBanners(prev => prev.map(item => item.id === id ? { ...item, ...b } : item));
@@ -186,7 +202,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       settings, updateSettings,
       products, addProduct, updateProduct, deleteProduct,
       categories, addCategory, updateCategory, deleteCategory,
-      orders, updateOrderStatus,
+      orders, addOrder, updateOrderStatus,
       visitors,
       banners, addBanner, updateBanner, deleteBanner,
     }}>

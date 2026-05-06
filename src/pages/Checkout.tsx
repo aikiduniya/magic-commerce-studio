@@ -17,12 +17,13 @@ const fadeUp = {
 
 export default function Checkout() {
   const { items, totalPrice, clearCart, appliedCoupon, applyCoupon, removeCoupon, discountAmount, finalPrice } = useCart();
-  const { settings } = useStore();
+  const { settings, addOrder } = useStore();
   const navigate = useNavigate();
   const [step, setStep] = useState<"details" | "payment" | "success">("details");
   const [isProcessing, setIsProcessing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
+  const [placedOrderId, setPlacedOrderId] = useState<string>("");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -50,6 +51,20 @@ export default function Checkout() {
     e.preventDefault();
     setIsProcessing(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const order = addOrder({
+      customer: `${formData.firstName} ${formData.lastName}`.trim() || "Guest",
+      email: formData.email,
+      items: items.map((item) => ({
+        productId: item.product.id,
+        name: item.product.name,
+        qty: item.quantity,
+        price: item.product.price * item.quantity,
+      })),
+      total: Number(finalPrice.toFixed(2)),
+    });
+    setPlacedOrderId(order.id);
+
     setIsProcessing(false);
     setStep("success");
     clearCart();
@@ -106,7 +121,7 @@ export default function Checkout() {
               <div className="mt-6 p-4 rounded-lg bg-secondary/50">
                 <p className="text-sm text-muted-foreground">Order number</p>
                 <p className="font-mono font-semibold text-foreground">
-                  ORD-{Math.random().toString(36).substr(2, 9).toUpperCase()}
+                  {placedOrderId || "ORD-PENDING"}
                 </p>
               </div>
               <Link to="/">
