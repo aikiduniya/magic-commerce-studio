@@ -416,7 +416,7 @@ function CategoriesPanel() {
 }
 
 function OrdersPanel() {
-  const { orders, updateOrderStatus } = useStore();
+  const { orders, updateOrderStatus, settings } = useStore();
   const statuses: Array<"pending" | "processing" | "shipped" | "delivered" | "cancelled"> = ["pending", "processing", "shipped", "delivered", "cancelled"];
 
   return (
@@ -427,15 +427,20 @@ function OrdersPanel() {
           <motion.div key={o.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="admin-card p-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-display font-semibold text-admin-text">{o.id}</h4>
                   <StatusBadge status={o.status} />
+                  {o.paymentMethod && (
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-admin-surface text-admin-text-muted">
+                      {o.paymentMethod === "cod" ? "Cash on Delivery" : "Card"}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-admin-text-muted mt-1">{o.customer} • {o.email}</p>
                 <p className="text-xs text-admin-text-muted">{o.date}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-display font-bold text-lg text-admin-text">${o.total}</span>
+                <span className="font-display font-bold text-lg text-admin-text">{formatCurrency(o.total, settings.currency)}</span>
                 <select
                   value={o.status}
                   onChange={e => updateOrderStatus(o.id, e.target.value as any)}
@@ -449,12 +454,159 @@ function OrdersPanel() {
               {o.items.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-sm py-1">
                   <span className="text-admin-text-muted">{item.name} × {item.qty}</span>
-                  <span className="text-admin-text">${item.price}</span>
+                  <span className="text-admin-text">{formatCurrency(item.price, settings.currency)}</span>
                 </div>
               ))}
             </div>
           </motion.div>
         ))}
+        {orders.length === 0 && (
+          <div className="admin-card p-10 text-center text-admin-text-muted text-sm">No orders yet. Customer checkouts will appear here.</div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function CouponsPanel() {
+  const { coupons, addCoupon, updateCoupon, deleteCoupon, settings } = useStore();
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState<{ code: string; label: string; discountType: "flat" | "percentage"; value: string; active: boolean }>({
+    code: "", label: "", discountType: "percentage", value: "", active: true,
+  });
+
+  const resetForm = () => {
+    setForm({ code: "", label: "", discountType: "percentage", value: "", active: true });
+    setEditId(null);
+    setShowForm(false);
+  };
+
+  const handleSubmit = () => {
+    if (!form.code.trim() || !form.value) return;
+    const payload = {
+      code: form.code.trim().toUpperCase(),
+      label: form.label.trim() || form.code.trim().toUpperCase(),
+      discountType: form.discountType,
+      value: Number(form.value),
+      active: form.active,
+    };
+    if (editId) {
+      updateCoupon(editId, payload);
+    } else {
+      addCoupon({ id: Date.now().toString(), ...payload });
+    }
+    resetForm();
+  };
+
+  const startEdit = (c: Coupon) => {
+    setForm({ code: c.code, label: c.label, discountType: c.discountType, value: String(c.value), active: c.active });
+    setEditId(c.id);
+    setShowForm(true);
+  };
+
+  return (
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+      <div className="flex justify-between items-center">
+        <p className="text-admin-text-muted text-sm">
+          {coupons.length} coupons • {coupons.filter(c => c.active).length} active
+        </p>
+        <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Plus className="h-4 w-4" /> Add Coupon
+        </Button>
+      </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="admin-card p-5 space-y-4 overflow-hidden">
+            <div className="flex justify-between items-center">
+              <h3 className="font-display font-semibold text-admin-text">{editId ? "Edit" : "Add"} Coupon</h3>
+              <button onClick={resetForm}><X className="h-5 w-5 text-admin-text-muted" /></button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">Coupon Code</label>
+                <Input placeholder="e.g. SAVE10" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} className="bg-admin-surface border-admin-border text-admin-text font-mono uppercase" />
+              </div>
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">Display Label</label>
+                <Input placeholder="e.g. 10% Off Spring Sale" value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
+              </div>
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">Discount Type</label>
+                <select
+                  value={form.discountType}
+                  onChange={e => setForm({ ...form, discountType: e.target.value as "flat" | "percentage" })}
+                  className="w-full rounded-lg px-3 py-2 text-sm bg-admin-surface border border-admin-border text-admin-text"
+                >
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="flat">Flat Amount ({settings.currency})</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">
+                  Value {form.discountType === "percentage" ? "(%)" : `(${settings.currency})`}
+                </label>
+                <Input
+                  type="number"
+                  placeholder={form.discountType === "percentage" ? "10" : "500"}
+                  value={form.value}
+                  onChange={e => setForm({ ...form, value: e.target.value })}
+                  className="bg-admin-surface border-admin-border text-admin-text"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch checked={form.active} onCheckedChange={(checked) => setForm({ ...form, active: checked })} />
+              <span className="text-sm text-admin-text-muted">Active (customers can apply at checkout)</span>
+            </div>
+            <Button onClick={handleSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+              <Save className="h-4 w-4" /> {editId ? "Update" : "Add"} Coupon
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {coupons.map((c, i) => (
+          <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="admin-card-hover p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <Tag className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-mono font-bold text-admin-text tracking-wide">{c.code}</h4>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${c.active ? "bg-badge-success/15 text-badge-success" : "bg-admin-surface text-admin-text-muted"}`}>
+                      {c.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-admin-text-muted mt-0.5">{c.label}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-display font-bold text-lg text-admin-text">
+                  {c.discountType === "percentage" ? `${c.value}%` : formatCurrency(c.value, settings.currency)}
+                </p>
+                <p className="text-[10px] uppercase tracking-wider text-admin-text-muted">{c.discountType}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-4 pt-3 border-t" style={{ borderColor: "hsl(var(--admin-border))" }}>
+              <Switch checked={c.active} onCheckedChange={(checked) => updateCoupon(c.id, { active: checked })} />
+              <span className="text-xs text-admin-text-muted flex-1">{c.active ? "Visible to customers" : "Hidden"}</span>
+              <button onClick={() => startEdit(c)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-badge-info transition-colors">
+                <Edit className="h-4 w-4" />
+              </button>
+              <button onClick={() => deleteCoupon(c.id)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-destructive transition-colors">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+        {coupons.length === 0 && (
+          <div className="admin-card p-10 text-center text-admin-text-muted text-sm md:col-span-2">No coupons yet. Add one to offer discounts at checkout.</div>
+        )}
       </div>
     </motion.div>
   );
