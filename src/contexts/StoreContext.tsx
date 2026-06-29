@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { extractColorsFromImage, applyThemeColors, ExtractedColors } from "@/utils/colorExtractor";
-import mkLogo from "@/assets/mk-logo.png";
-import mkHero from "@/assets/mk-hero.jpeg";
+import mkLogoAsset from "@/assets/mk-logo.png.asset.json";
+import mkHeroAsset from "@/assets/mk-hero.jpeg.asset.json";
+const mkLogo = mkLogoAsset.url;
+const mkHero = mkHeroAsset.url;
 
 export interface Product {
   id: string;
