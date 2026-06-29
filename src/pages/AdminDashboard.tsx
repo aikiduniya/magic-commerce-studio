@@ -109,10 +109,10 @@ export default function AdminDashboard() {
 }
 
 function DashboardPanel() {
-  const { products, orders, visitors } = useStore();
+  const { products, orders, visitors, settings } = useStore();
   const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
   const stats = [
-    { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-badge-success" },
+    { label: "Total Revenue", value: formatCurrency(totalRevenue, settings.currency), icon: DollarSign, color: "text-badge-success" },
     { label: "Products", value: products.length, icon: Package, color: "text-badge-info" },
     { label: "Orders", value: orders.length, icon: ShoppingCart, color: "text-badge-warning" },
     { label: "Visitors", value: visitors.length, icon: Eye, color: "text-primary" },
@@ -143,7 +143,7 @@ function DashboardPanel() {
                   <p className="text-xs text-admin-text-muted">{o.id} • {o.date}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-admin-text">${o.total}</p>
+                  <p className="text-sm font-bold text-admin-text">{formatCurrency(o.total, settings.currency)}</p>
                   <StatusBadge status={o.status} />
                 </div>
               </div>
@@ -331,7 +331,7 @@ function ProductsPanel() {
               <h4 className="font-medium text-admin-text truncate">{p.name}</h4>
               <p className="text-xs text-admin-text-muted">{p.category} • Stock: {p.stock}</p>
             </div>
-            <span className="font-display font-bold text-admin-text">${p.price}</span>
+            <span className="font-display font-bold text-admin-text">{p.price}</span>
             <div className="flex gap-2">
               <button onClick={() => startEdit(p)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-badge-info transition-colors">
                 <Edit className="h-4 w-4" />
