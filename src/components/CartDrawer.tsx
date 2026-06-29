@@ -1,12 +1,16 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
+import { useStore } from "@/contexts/StoreContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag, Percent } from "lucide-react";
 import { Link } from "react-router-dom";
+import { formatCurrency } from "@/lib/currency";
 
 export default function CartDrawer() {
   const { items, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, totalPrice, totalItems, appliedCoupon, discountAmount, finalPrice } = useCart();
+  const { settings } = useStore();
+  const fmt = (v: number) => formatCurrency(v, settings.currency);
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
@@ -53,7 +57,7 @@ export default function CartDrawer() {
                     />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-foreground truncate">{item.product.name}</h4>
-                      <p className="text-sm text-muted-foreground">${item.product.price}</p>
+                      <p className="text-sm text-muted-foreground">{fmt(item.product.price)}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Button
                           variant="outline"
@@ -83,7 +87,7 @@ export default function CartDrawer() {
                       </div>
                     </div>
                     <div className="font-semibold text-foreground">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      {fmt(item.product.price * item.quantity)}
                     </div>
                   </motion.div>
                 ))}
@@ -94,7 +98,7 @@ export default function CartDrawer() {
               {/* Subtotal */}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>{fmt(totalPrice)}</span>
               </div>
 
               {/* Coupon discount */}
@@ -110,7 +114,7 @@ export default function CartDrawer() {
                       <Percent className="h-3 w-3" />
                       {appliedCoupon.label}
                     </span>
-                    <span className="text-primary font-medium">-${discountAmount.toFixed(2)}</span>
+                    <span className="text-primary font-medium">-{fmt(discountAmount)}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -120,9 +124,9 @@ export default function CartDrawer() {
                 <span>Total</span>
                 <div className="text-right">
                   {appliedCoupon && (
-                    <span className="text-sm line-through text-muted-foreground mr-2">${totalPrice.toFixed(2)}</span>
+                    <span className="text-sm line-through text-muted-foreground mr-2">{fmt(totalPrice)}</span>
                   )}
-                  <span>${finalPrice.toFixed(2)}</span>
+                  <span>{fmt(finalPrice)}</span>
                 </div>
               </div>
 

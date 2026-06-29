@@ -1,19 +1,20 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStore, Product, Category, Banner } from "@/contexts/StoreContext";
+import { useStore, Product, Category, Banner, Coupon } from "@/contexts/StoreContext";
 import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderOpen, ShoppingCart, Users, Settings,
   Plus, Trash2, Edit, ArrowLeft, Upload, TrendingUp, DollarSign,
-  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles
+  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles, Tag, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import ImageUploadField from "@/components/ImageUploadField";
+import { formatCurrency } from "@/lib/currency";
 
-type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "coupons" | "settings";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "products", label: "Products", icon: Package },
   { id: "categories", label: "Categories", icon: FolderOpen },
   { id: "orders", label: "Orders", icon: ShoppingCart },
+  { id: "coupons", label: "Coupons", icon: Tag },
   { id: "visitors", label: "Visitors", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -96,6 +98,7 @@ export default function AdminDashboard() {
             {activeTab === "products" && <ProductsPanel key="products" />}
             {activeTab === "categories" && <CategoriesPanel key="categories" />}
             {activeTab === "orders" && <OrdersPanel key="orders" />}
+            {activeTab === "coupons" && <CouponsPanel key="coupons" />}
             {activeTab === "visitors" && <VisitorsPanel key="visitors" />}
             {activeTab === "settings" && <SettingsPanel key="settings" />}
           </AnimatePresence>
@@ -106,10 +109,10 @@ export default function AdminDashboard() {
 }
 
 function DashboardPanel() {
-  const { products, orders, visitors } = useStore();
+  const { products, orders, visitors, settings } = useStore();
   const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
   const stats = [
-    { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-badge-success" },
+    { label: "Total Revenue", value: formatCurrency(totalRevenue, settings.currency), icon: DollarSign, color: "text-badge-success" },
     { label: "Products", value: products.length, icon: Package, color: "text-badge-info" },
     { label: "Orders", value: orders.length, icon: ShoppingCart, color: "text-badge-warning" },
     { label: "Visitors", value: visitors.length, icon: Eye, color: "text-primary" },
@@ -140,7 +143,7 @@ function DashboardPanel() {
                   <p className="text-xs text-admin-text-muted">{o.id} • {o.date}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-admin-text">${o.total}</p>
+                  <p className="text-sm font-bold text-admin-text">{formatCurrency(o.total, settings.currency)}</p>
                   <StatusBadge status={o.status} />
                 </div>
               </div>
@@ -328,7 +331,7 @@ function ProductsPanel() {
               <h4 className="font-medium text-admin-text truncate">{p.name}</h4>
               <p className="text-xs text-admin-text-muted">{p.category} • Stock: {p.stock}</p>
             </div>
-            <span className="font-display font-bold text-admin-text">${p.price}</span>
+            <span className="font-display font-bold text-admin-text">{p.price}</span>
             <div className="flex gap-2">
               <button onClick={() => startEdit(p)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-badge-info transition-colors">
                 <Edit className="h-4 w-4" />
@@ -413,7 +416,7 @@ function CategoriesPanel() {
 }
 
 function OrdersPanel() {
-  const { orders, updateOrderStatus } = useStore();
+  const { orders, updateOrderStatus, settings } = useStore();
   const statuses: Array<"pending" | "processing" | "shipped" | "delivered" | "cancelled"> = ["pending", "processing", "shipped", "delivered", "cancelled"];
 
   return (
@@ -424,15 +427,20 @@ function OrdersPanel() {
           <motion.div key={o.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="admin-card p-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-display font-semibold text-admin-text">{o.id}</h4>
                   <StatusBadge status={o.status} />
+                  {o.paymentMethod && (
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-admin-surface text-admin-text-muted">
+                      {o.paymentMethod === "cod" ? "Cash on Delivery" : "Card"}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-admin-text-muted mt-1">{o.customer} • {o.email}</p>
                 <p className="text-xs text-admin-text-muted">{o.date}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-display font-bold text-lg text-admin-text">${o.total}</span>
+                <span className="font-display font-bold text-lg text-admin-text">{formatCurrency(o.total, settings.currency)}</span>
                 <select
                   value={o.status}
                   onChange={e => updateOrderStatus(o.id, e.target.value as any)}
@@ -446,12 +454,159 @@ function OrdersPanel() {
               {o.items.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-sm py-1">
                   <span className="text-admin-text-muted">{item.name} × {item.qty}</span>
-                  <span className="text-admin-text">${item.price}</span>
+                  <span className="text-admin-text">{formatCurrency(item.price, settings.currency)}</span>
                 </div>
               ))}
             </div>
           </motion.div>
         ))}
+        {orders.length === 0 && (
+          <div className="admin-card p-10 text-center text-admin-text-muted text-sm">No orders yet. Customer checkouts will appear here.</div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function CouponsPanel() {
+  const { coupons, addCoupon, updateCoupon, deleteCoupon, settings } = useStore();
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState<{ code: string; label: string; discountType: "flat" | "percentage"; value: string; active: boolean }>({
+    code: "", label: "", discountType: "percentage", value: "", active: true,
+  });
+
+  const resetForm = () => {
+    setForm({ code: "", label: "", discountType: "percentage", value: "", active: true });
+    setEditId(null);
+    setShowForm(false);
+  };
+
+  const handleSubmit = () => {
+    if (!form.code.trim() || !form.value) return;
+    const payload = {
+      code: form.code.trim().toUpperCase(),
+      label: form.label.trim() || form.code.trim().toUpperCase(),
+      discountType: form.discountType,
+      value: Number(form.value),
+      active: form.active,
+    };
+    if (editId) {
+      updateCoupon(editId, payload);
+    } else {
+      addCoupon({ id: Date.now().toString(), ...payload });
+    }
+    resetForm();
+  };
+
+  const startEdit = (c: Coupon) => {
+    setForm({ code: c.code, label: c.label, discountType: c.discountType, value: String(c.value), active: c.active });
+    setEditId(c.id);
+    setShowForm(true);
+  };
+
+  return (
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+      <div className="flex justify-between items-center">
+        <p className="text-admin-text-muted text-sm">
+          {coupons.length} coupons • {coupons.filter(c => c.active).length} active
+        </p>
+        <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Plus className="h-4 w-4" /> Add Coupon
+        </Button>
+      </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="admin-card p-5 space-y-4 overflow-hidden">
+            <div className="flex justify-between items-center">
+              <h3 className="font-display font-semibold text-admin-text">{editId ? "Edit" : "Add"} Coupon</h3>
+              <button onClick={resetForm}><X className="h-5 w-5 text-admin-text-muted" /></button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">Coupon Code</label>
+                <Input placeholder="e.g. SAVE10" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} className="bg-admin-surface border-admin-border text-admin-text font-mono uppercase" />
+              </div>
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">Display Label</label>
+                <Input placeholder="e.g. 10% Off Spring Sale" value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
+              </div>
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">Discount Type</label>
+                <select
+                  value={form.discountType}
+                  onChange={e => setForm({ ...form, discountType: e.target.value as "flat" | "percentage" })}
+                  className="w-full rounded-lg px-3 py-2 text-sm bg-admin-surface border border-admin-border text-admin-text"
+                >
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="flat">Flat Amount ({settings.currency})</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-admin-text-muted block mb-1">
+                  Value {form.discountType === "percentage" ? "(%)" : `(${settings.currency})`}
+                </label>
+                <Input
+                  type="number"
+                  placeholder={form.discountType === "percentage" ? "10" : "500"}
+                  value={form.value}
+                  onChange={e => setForm({ ...form, value: e.target.value })}
+                  className="bg-admin-surface border-admin-border text-admin-text"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch checked={form.active} onCheckedChange={(checked) => setForm({ ...form, active: checked })} />
+              <span className="text-sm text-admin-text-muted">Active (customers can apply at checkout)</span>
+            </div>
+            <Button onClick={handleSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+              <Save className="h-4 w-4" /> {editId ? "Update" : "Add"} Coupon
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {coupons.map((c, i) => (
+          <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="admin-card-hover p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <Tag className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-mono font-bold text-admin-text tracking-wide">{c.code}</h4>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${c.active ? "bg-badge-success/15 text-badge-success" : "bg-admin-surface text-admin-text-muted"}`}>
+                      {c.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-admin-text-muted mt-0.5">{c.label}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-display font-bold text-lg text-admin-text">
+                  {c.discountType === "percentage" ? `${c.value}%` : formatCurrency(c.value, settings.currency)}
+                </p>
+                <p className="text-[10px] uppercase tracking-wider text-admin-text-muted">{c.discountType}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-4 pt-3 border-t" style={{ borderColor: "hsl(var(--admin-border))" }}>
+              <Switch checked={c.active} onCheckedChange={(checked) => updateCoupon(c.id, { active: checked })} />
+              <span className="text-xs text-admin-text-muted flex-1">{c.active ? "Visible to customers" : "Hidden"}</span>
+              <button onClick={() => startEdit(c)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-badge-info transition-colors">
+                <Edit className="h-4 w-4" />
+              </button>
+              <button onClick={() => deleteCoupon(c.id)} className="p-2 rounded-lg hover:bg-admin-surface-hover text-admin-text-muted hover:text-destructive transition-colors">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+        {coupons.length === 0 && (
+          <div className="admin-card p-10 text-center text-admin-text-muted text-sm md:col-span-2">No coupons yet. Add one to offer discounts at checkout.</div>
+        )}
       </div>
     </motion.div>
   );
@@ -531,7 +686,14 @@ function VisitorsPanel() {
 
 function SettingsPanel() {
   const { settings, updateSettings } = useStore();
-  const [form, setForm] = useState({ name: settings.name, email: settings.email, phone: settings.phone });
+  const [form, setForm] = useState({
+    name: settings.name,
+    email: settings.email,
+    phone: settings.phone,
+    currency: settings.currency,
+    whatsappNumber: settings.whatsappNumber,
+    whatsappMessage: settings.whatsappMessage,
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -548,6 +710,8 @@ function SettingsPanel() {
   const handleSave = () => {
     updateSettings(form);
   };
+
+  const waPreview = (form.whatsappNumber || "").replace(/[^\d]/g, "");
 
   return (
     <motion.div variants={fadeIn} initial="hidden" animate="visible" exit="exit" className="max-w-2xl space-y-6">
@@ -591,9 +755,9 @@ function SettingsPanel() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="grid grid-cols-1 gap-4">
-          <div>
+        {/* Store Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
             <label className="text-sm font-medium text-admin-text-muted block mb-1">Store Name</label>
             <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
           </div>
@@ -605,12 +769,56 @@ function SettingsPanel() {
             <label className="text-sm font-medium text-admin-text-muted block mb-1">Phone</label>
             <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
           </div>
+          <div>
+            <label className="text-sm font-medium text-admin-text-muted block mb-1">Currency Symbol</label>
+            <Input value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} placeholder="Rs." className="bg-admin-surface border-admin-border text-admin-text" />
+            <p className="text-[10px] text-admin-text-muted mt-1">e.g. Rs., $, £, ₹</p>
+          </div>
+        </div>
+      </div>
+
+      {/* WhatsApp Settings */}
+      <div className="admin-card p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: "#25D366" }}>
+            <MessageCircle className="h-5 w-5 text-white" fill="currentColor" />
+          </div>
+          <div>
+            <h3 className="font-display font-semibold text-admin-text">WhatsApp Widget</h3>
+            <p className="text-xs text-admin-text-muted">Configure the floating chat button on your storefront</p>
+          </div>
         </div>
 
-        <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-          <Save className="h-4 w-4" /> Save Settings
-        </Button>
+        <div>
+          <label className="text-sm font-medium text-admin-text-muted block mb-1">WhatsApp Number (with country code)</label>
+          <Input
+            value={form.whatsappNumber}
+            onChange={e => setForm({ ...form, whatsappNumber: e.target.value })}
+            placeholder="+923001234567"
+            className="bg-admin-surface border-admin-border text-admin-text"
+          />
+          <p className="text-[10px] text-admin-text-muted mt-1">
+            Leave empty to hide the widget. {waPreview && (
+              <>Link preview: <span className="font-mono">wa.me/{waPreview}</span></>
+            )}
+          </p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-admin-text-muted block mb-1">Pre-filled Message</label>
+          <Textarea
+            value={form.whatsappMessage}
+            onChange={e => setForm({ ...form, whatsappMessage: e.target.value })}
+            placeholder="Hi! I'd like to know more about your products."
+            className="bg-admin-surface border-admin-border text-admin-text"
+            rows={2}
+          />
+        </div>
       </div>
+
+      <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+        <Save className="h-4 w-4" /> Save Settings
+      </Button>
     </motion.div>
   );
 }

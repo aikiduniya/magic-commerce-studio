@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { Product } from "@/contexts/StoreContext";
+import { Product, useStore } from "@/contexts/StoreContext";
 import { useCart } from "@/contexts/CartContext";
-import { ShoppingCart, Eye, Sparkles } from "lucide-react";
+import { ShoppingCart, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currency";
 
 interface ProductCardProps {
   product: Product;
@@ -42,6 +43,7 @@ const priceVariants = {
 
 export default function ProductCard({ product, index, variant = "compact" }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { settings } = useStore();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -151,7 +153,7 @@ export default function ProductCard({ product, index, variant = "compact" }: Pro
               className="text-2xl font-bold text-foreground"
               variants={priceVariants}
             >
-              ${product.price}
+              {formatCurrency(product.price, settings.currency)}
             </motion.span>
           </div>
         </div>
@@ -215,7 +217,7 @@ export default function ProductCard({ product, index, variant = "compact" }: Pro
         <h3 className="mt-1 font-display font-semibold text-foreground text-sm leading-tight line-clamp-1">{product.name}</h3>
         <div className="mt-2 flex items-center justify-between">
           <motion.span className="font-bold text-lg text-foreground" variants={priceVariants}>
-            ${product.price}
+            {formatCurrency(product.price, settings.currency)}
           </motion.span>
         </div>
       </div>

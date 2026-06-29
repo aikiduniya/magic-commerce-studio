@@ -116,7 +116,7 @@ export default function Storefront() {
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             {[
-              { icon: Truck, title: "Free Shipping", desc: "On orders over $100" },
+              { icon: Truck, title: "Free Shipping", desc: "On all orders nationwide" },
               { icon: Shield, title: "Secure Checkout", desc: "256-bit SSL encryption" },
               { icon: Headphones, title: "24/7 Support", desc: "Always here to help" },
             ].map((f, i) => (

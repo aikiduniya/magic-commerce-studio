@@ -19,6 +19,7 @@ import {
   Heart,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currency";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -199,7 +200,7 @@ export default function ProductDetail() {
 
             {/* Price */}
             <div className="mt-8">
-              <span className="text-5xl font-bold text-foreground">${product.price}</span>
+              <span className="text-5xl font-bold text-foreground">{formatCurrency(product.price, settings.currency)}</span>
             </div>
 
             {/* Stock Status */}
@@ -254,7 +255,7 @@ export default function ProductDetail() {
                 disabled={product.stock === 0}
               >
                 <ShoppingCart className="h-5 w-5" />
-                Add to Cart - ${(product.price * quantity).toFixed(2)}
+                Add to Cart - {formatCurrency(product.price * quantity, settings.currency)}
               </Button>
               
               <div className="flex gap-2">

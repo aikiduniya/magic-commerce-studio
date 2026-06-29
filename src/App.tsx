@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { StoreProvider } from "@/contexts/StoreContext";
 import { CartProvider } from "@/contexts/CartContext";
 import CartDrawer from "@/components/CartDrawer";
+import WhatsAppWidget from "@/components/WhatsAppWidget";
 import Storefront from "./pages/Storefront";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -26,6 +27,7 @@ const App = () => (
         <CartProvider>
           <BrowserRouter>
             <CartDrawer />
+            <WhatsAppWidget />
             <Routes>
               <Route path="/" element={<Storefront />} />
               <Route path="/products" element={<Products />} />

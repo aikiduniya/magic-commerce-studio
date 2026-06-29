@@ -1,23 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Product } from "./StoreContext";
+import { Product, useStore, Coupon as StoreCoupon } from "./StoreContext";
 
 export interface CartItem {
   product: Product;
   quantity: number;
 }
 
-export interface Coupon {
-  code: string;
-  discount: number; // percentage
-  label: string;
-}
-
-const AVAILABLE_COUPONS: Coupon[] = [
-  { code: "SAVE10", discount: 10, label: "10% Off" },
-  { code: "SAVE20", discount: 20, label: "20% Off" },
-  { code: "WELCOME", discount: 15, label: "15% Welcome Discount" },
-  { code: "LUXE50", discount: 50, label: "50% Off — VIP" },
-];
+export type AppliedCoupon = StoreCoupon;
 
 interface CartContextType {
   items: CartItem[];
@@ -29,7 +18,7 @@ interface CartContextType {
   totalPrice: number;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
-  appliedCoupon: Coupon | null;
+  appliedCoupon: AppliedCoupon | null;
   applyCoupon: (code: string) => { success: boolean; message: string };
   removeCoupon: () => void;
   discountAmount: number;
@@ -48,13 +37,29 @@ function loadCart(): CartItem[] {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { coupons } = useStore();
   const [items, setItems] = useState<CartItem[]>(() => loadCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
 
   useEffect(() => {
     localStorage.setItem("store-cart", JSON.stringify(items));
   }, [items]);
+
+  // Keep applied coupon in sync with admin updates (e.g. deactivation/deletion)
+  useEffect(() => {
+    if (!appliedCoupon) return;
+    const fresh = coupons.find((c) => c.id === appliedCoupon.id);
+    if (!fresh || !fresh.active) {
+      setAppliedCoupon(null);
+    } else if (
+      fresh.value !== appliedCoupon.value ||
+      fresh.discountType !== appliedCoupon.discountType ||
+      fresh.code !== appliedCoupon.code
+    ) {
+      setAppliedCoupon(fresh);
+    }
+  }, [coupons, appliedCoupon]);
 
   const addToCart = (product: Product, quantity = 1) => {
     setItems((prev) => {
@@ -93,11 +98,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const applyCoupon = (code: string): { success: boolean; message: string } => {
-    const coupon = AVAILABLE_COUPONS.find(
+    const coupon = coupons.find(
       (c) => c.code.toLowerCase() === code.trim().toLowerCase()
     );
     if (!coupon) {
       return { success: false, message: "Invalid coupon code" };
+    }
+    if (!coupon.active) {
+      return { success: false, message: "This coupon is no longer active" };
     }
     if (appliedCoupon?.code === coupon.code) {
       return { success: false, message: "Coupon already applied" };
@@ -115,10 +123,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  const discountAmount = appliedCoupon
-    ? (totalPrice * appliedCoupon.discount) / 100
-    : 0;
-  const finalPrice = totalPrice - discountAmount;
+
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === "percentage") {
+      discountAmount = (totalPrice * appliedCoupon.value) / 100;
+    } else {
+      discountAmount = Math.min(appliedCoupon.value, totalPrice);
+    }
+  }
+  const finalPrice = Math.max(0, totalPrice - discountAmount);
 
   return (
     <CartContext.Provider
@@ -149,3 +163,6 @@ export function useCart() {
   if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
 }
+
+// Backwards compatibility for any imports of Coupon from CartContext
+export type Coupon = AppliedCoupon;

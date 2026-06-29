@@ -6,14 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Check, CreditCard, ShoppingBag, Truck, Tag, X, Percent } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, ShoppingBag, Truck, Tag, X, Percent, Banknote } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currency";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
+
+type PaymentMethod = "card" | "cod";
 
 export default function Checkout() {
   const { items, totalPrice, clearCart, appliedCoupon, applyCoupon, removeCoupon, discountAmount, finalPrice } = useCart();
@@ -24,6 +27,9 @@ export default function Checkout() {
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
   const [placedOrderId, setPlacedOrderId] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
+
+  const fmt = (v: number) => formatCurrency(v, settings.currency);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -33,6 +39,7 @@ export default function Checkout() {
     city: "",
     zipCode: "",
     country: "",
+    phone: "",
     cardNumber: "",
     expiry: "",
     cvc: "",
@@ -50,7 +57,7 @@ export default function Checkout() {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, paymentMethod === "cod" ? 800 : 1800));
 
     const order = addOrder({
       customer: `${formData.firstName} ${formData.lastName}`.trim() || "Guest",
@@ -62,6 +69,7 @@ export default function Checkout() {
         price: item.product.price * item.quantity,
       })),
       total: Number(finalPrice.toFixed(2)),
+      paymentMethod,
     });
     setPlacedOrderId(order.id);
 
@@ -116,7 +124,9 @@ export default function Checkout() {
               </motion.div>
               <h2 className="font-display text-2xl font-bold text-foreground">Order Confirmed!</h2>
               <p className="text-muted-foreground mt-2">
-                Thank you for your purchase. We'll send you an email confirmation shortly.
+                {paymentMethod === "cod"
+                  ? "Your Cash on Delivery order has been placed. Please keep the exact amount ready."
+                  : "Thank you for your purchase. We'll send you an email confirmation shortly."}
               </p>
               <div className="mt-6 p-4 rounded-lg bg-secondary/50">
                 <p className="text-sm text-muted-foreground">Order number</p>
@@ -196,6 +206,10 @@ export default function Checkout() {
                       <Label htmlFor="email">Email</Label>
                       <Input id="email" name="email" type="email" required value={formData.email} onChange={handleInputChange} placeholder="your@email.com" />
                     </div>
+                    <div>
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input id="phone" name="phone" type="tel" required value={formData.phone} onChange={handleInputChange} placeholder="03xx xxxxxxx" />
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">First Name</Label>
@@ -208,7 +222,7 @@ export default function Checkout() {
                     </div>
                     <div>
                       <Label htmlFor="address">Address</Label>
-                      <Input id="address" name="address" required value={formData.address} onChange={handleInputChange} placeholder="123 Main Street" />
+                      <Input id="address" name="address" required value={formData.address} onChange={handleInputChange} placeholder="House #, Street, Area" />
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
@@ -221,7 +235,7 @@ export default function Checkout() {
                       </div>
                       <div>
                         <Label htmlFor="country">Country</Label>
-                        <Input id="country" name="country" required value={formData.country} onChange={handleInputChange} />
+                        <Input id="country" name="country" required value={formData.country} onChange={handleInputChange} placeholder="Pakistan" />
                       </div>
                     </div>
                     <Button type="submit" className="w-full" size="lg">
@@ -235,30 +249,87 @@ export default function Checkout() {
             {step === "payment" && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Payment Information</CardTitle>
+                  <CardTitle>Payment Method</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="cardNumber">Card Number</Label>
-                      <Input id="cardNumber" name="cardNumber" required value={formData.cardNumber} onChange={handleInputChange} placeholder="4242 4242 4242 4242" />
+                  <form onSubmit={handlePaymentSubmit} className="space-y-5">
+                    {/* Payment Method Selector */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("cod")}
+                        className={`p-4 rounded-lg border-2 text-left transition-all ${
+                          paymentMethod === "cod"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <Banknote className={`h-5 w-5 mb-2 ${paymentMethod === "cod" ? "text-primary" : "text-muted-foreground"}`} />
+                        <p className="font-semibold text-sm">Cash on Delivery</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Pay when you receive</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("card")}
+                        className={`p-4 rounded-lg border-2 text-left transition-all ${
+                          paymentMethod === "card"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <CreditCard className={`h-5 w-5 mb-2 ${paymentMethod === "card" ? "text-primary" : "text-muted-foreground"}`} />
+                        <p className="font-semibold text-sm">Credit / Debit Card</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Pay securely online</p>
+                      </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="expiry">Expiry Date</Label>
-                        <Input id="expiry" name="expiry" required value={formData.expiry} onChange={handleInputChange} placeholder="MM/YY" />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvc">CVC</Label>
-                        <Input id="cvc" name="cvc" required value={formData.cvc} onChange={handleInputChange} placeholder="123" />
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
+
+                    <AnimatePresence mode="wait">
+                      {paymentMethod === "card" ? (
+                        <motion.div
+                          key="card-fields"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-4 overflow-hidden"
+                        >
+                          <div>
+                            <Label htmlFor="cardNumber">Card Number</Label>
+                            <Input id="cardNumber" name="cardNumber" required={paymentMethod === "card"} value={formData.cardNumber} onChange={handleInputChange} placeholder="4242 4242 4242 4242" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="expiry">Expiry Date</Label>
+                              <Input id="expiry" name="expiry" required={paymentMethod === "card"} value={formData.expiry} onChange={handleInputChange} placeholder="MM/YY" />
+                            </div>
+                            <div>
+                              <Label htmlFor="cvc">CVC</Label>
+                              <Input id="cvc" name="cvc" required={paymentMethod === "card"} value={formData.cvc} onChange={handleInputChange} placeholder="123" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="cod-info"
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          className="rounded-lg bg-secondary/40 border border-border p-4 text-sm text-muted-foreground"
+                        >
+                          You'll pay <span className="font-semibold text-foreground">{fmt(finalPrice)}</span> in cash when your order is delivered to your address.
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="flex gap-4 pt-2">
                       <Button type="button" variant="outline" onClick={() => setStep("details")}>
                         Back
                       </Button>
                       <Button type="submit" className="flex-1" size="lg" disabled={isProcessing}>
-                        {isProcessing ? "Processing..." : `Pay $${finalPrice.toFixed(2)}`}
+                        {isProcessing
+                          ? "Processing..."
+                          : paymentMethod === "cod"
+                          ? `Place Order — ${fmt(finalPrice)}`
+                          : `Pay ${fmt(finalPrice)}`}
                       </Button>
                     </div>
                   </form>
@@ -281,20 +352,19 @@ export default function Checkout() {
                       <p className="font-medium text-sm truncate">{item.product.name}</p>
                       <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
-                    <p className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium">{fmt(item.product.price * item.quantity)}</p>
                   </div>
                 ))}
                 <div className="border-t border-border pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>{fmt(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className="text-primary font-medium">Free</span>
                   </div>
 
-                  {/* Coupon discount */}
                   <AnimatePresence>
                     {appliedCoupon && (
                       <motion.div
@@ -306,8 +376,11 @@ export default function Checkout() {
                         <span className="text-primary flex items-center gap-1">
                           <Percent className="h-3 w-3" />
                           {appliedCoupon.label}
+                          <span className="text-[10px] text-muted-foreground ml-1">
+                            ({appliedCoupon.discountType === "percentage" ? `${appliedCoupon.value}%` : fmt(appliedCoupon.value)})
+                          </span>
                         </span>
-                        <span className="text-primary font-medium">-${discountAmount.toFixed(2)}</span>
+                        <span className="text-primary font-medium">-{fmt(discountAmount)}</span>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -316,9 +389,9 @@ export default function Checkout() {
                     <span>Total</span>
                     <div className="text-right">
                       {appliedCoupon && (
-                        <span className="text-sm line-through text-muted-foreground mr-2">${totalPrice.toFixed(2)}</span>
+                        <span className="text-sm line-through text-muted-foreground mr-2">{fmt(totalPrice)}</span>
                       )}
-                      <span>${finalPrice.toFixed(2)}</span>
+                      <span>{fmt(finalPrice)}</span>
                     </div>
                   </div>
                 </div>
@@ -345,7 +418,9 @@ export default function Checkout() {
                       </div>
                       <div>
                         <p className="font-mono text-sm font-bold text-primary">{appliedCoupon.code}</p>
-                        <p className="text-xs text-muted-foreground">{appliedCoupon.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {appliedCoupon.label} • {appliedCoupon.discountType === "percentage" ? `${appliedCoupon.value}% off` : `${fmt(appliedCoupon.value)} off`}
+                        </p>
                       </div>
                     </div>
                     <Button
@@ -367,10 +442,11 @@ export default function Checkout() {
                           setCouponCode(e.target.value);
                           setCouponError("");
                         }}
-                        onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleApplyCoupon())}
                         className="font-mono uppercase"
                       />
                       <Button
+                        type="button"
                         variant="outline"
                         onClick={handleApplyCoupon}
                         disabled={!couponCode.trim()}
@@ -390,7 +466,6 @@ export default function Checkout() {
                         </motion.p>
                       )}
                     </AnimatePresence>
-                    <p className="text-[10px] text-muted-foreground">Try: SAVE10, SAVE20, WELCOME, LUXE50</p>
                   </div>
                 )}
               </CardContent>
