@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Product } from "@/contexts/StoreContext";
+import { Product, useStore } from "@/contexts/StoreContext";
 import { useCart } from "@/contexts/CartContext";
 import { ShoppingCart, X, Minus, Plus, Sparkles, Package, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { formatCurrency } from "@/lib/currency";
 
 interface ProductQuickViewModalProps {
   product: Product | null;
@@ -31,6 +32,7 @@ const contentVariants = {
 
 export default function ProductQuickViewModal({ product, isOpen, onClose }: ProductQuickViewModalProps) {
   const { addToCart } = useCart();
+  const { settings } = useStore();
   const [quantity, setQuantity] = useState(1);
 
   if (!product) return null;
@@ -126,7 +128,7 @@ export default function ProductQuickViewModal({ product, isOpen, onClose }: Prod
               transition={{ delay: 0.2 }}
             >
               <span className="text-4xl font-bold text-foreground">
-                ${product.price}
+                {formatCurrency(product.price, settings.currency)}
               </span>
             </motion.div>
 
@@ -182,7 +184,7 @@ export default function ProductQuickViewModal({ product, isOpen, onClose }: Prod
                 disabled={product.stock === 0}
               >
                 <ShoppingCart className="h-5 w-5" />
-                Add to Cart - ${(product.price * quantity).toFixed(2)}
+                Add to Cart - {formatCurrency(product.price * quantity, settings.currency)}
               </Button>
               
               <Link to={`/products/${product.id}`} onClick={onClose}>

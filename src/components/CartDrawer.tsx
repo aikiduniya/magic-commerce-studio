@@ -1,12 +1,16 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
+import { useStore } from "@/contexts/StoreContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag, Percent } from "lucide-react";
 import { Link } from "react-router-dom";
+import { formatCurrency } from "@/lib/currency";
 
 export default function CartDrawer() {
   const { items, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart, totalPrice, totalItems, appliedCoupon, discountAmount, finalPrice } = useCart();
+  const { settings } = useStore();
+  const fmt = (v: number) => formatCurrency(v, settings.currency);
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
