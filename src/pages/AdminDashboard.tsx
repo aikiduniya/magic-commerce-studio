@@ -1,19 +1,20 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStore, Product, Category, Banner } from "@/contexts/StoreContext";
+import { useStore, Product, Category, Banner, Coupon } from "@/contexts/StoreContext";
 import { Link } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderOpen, ShoppingCart, Users, Settings,
   Plus, Trash2, Edit, ArrowLeft, Upload, TrendingUp, DollarSign,
-  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles
+  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles, Tag, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import ImageUploadField from "@/components/ImageUploadField";
+import { formatCurrency } from "@/lib/currency";
 
-type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "coupons" | "settings";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "products", label: "Products", icon: Package },
   { id: "categories", label: "Categories", icon: FolderOpen },
   { id: "orders", label: "Orders", icon: ShoppingCart },
+  { id: "coupons", label: "Coupons", icon: Tag },
   { id: "visitors", label: "Visitors", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -96,6 +98,7 @@ export default function AdminDashboard() {
             {activeTab === "products" && <ProductsPanel key="products" />}
             {activeTab === "categories" && <CategoriesPanel key="categories" />}
             {activeTab === "orders" && <OrdersPanel key="orders" />}
+            {activeTab === "coupons" && <CouponsPanel key="coupons" />}
             {activeTab === "visitors" && <VisitorsPanel key="visitors" />}
             {activeTab === "settings" && <SettingsPanel key="settings" />}
           </AnimatePresence>
