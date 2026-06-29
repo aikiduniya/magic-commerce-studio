@@ -686,7 +686,14 @@ function VisitorsPanel() {
 
 function SettingsPanel() {
   const { settings, updateSettings } = useStore();
-  const [form, setForm] = useState({ name: settings.name, email: settings.email, phone: settings.phone });
+  const [form, setForm] = useState({
+    name: settings.name,
+    email: settings.email,
+    phone: settings.phone,
+    currency: settings.currency,
+    whatsappNumber: settings.whatsappNumber,
+    whatsappMessage: settings.whatsappMessage,
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -703,6 +710,8 @@ function SettingsPanel() {
   const handleSave = () => {
     updateSettings(form);
   };
+
+  const waPreview = (form.whatsappNumber || "").replace(/[^\d]/g, "");
 
   return (
     <motion.div variants={fadeIn} initial="hidden" animate="visible" exit="exit" className="max-w-2xl space-y-6">
@@ -746,9 +755,9 @@ function SettingsPanel() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="grid grid-cols-1 gap-4">
-          <div>
+        {/* Store Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
             <label className="text-sm font-medium text-admin-text-muted block mb-1">Store Name</label>
             <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
           </div>
@@ -760,12 +769,56 @@ function SettingsPanel() {
             <label className="text-sm font-medium text-admin-text-muted block mb-1">Phone</label>
             <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="bg-admin-surface border-admin-border text-admin-text" />
           </div>
+          <div>
+            <label className="text-sm font-medium text-admin-text-muted block mb-1">Currency Symbol</label>
+            <Input value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} placeholder="Rs." className="bg-admin-surface border-admin-border text-admin-text" />
+            <p className="text-[10px] text-admin-text-muted mt-1">e.g. Rs., $, £, ₹</p>
+          </div>
+        </div>
+      </div>
+
+      {/* WhatsApp Settings */}
+      <div className="admin-card p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: "#25D366" }}>
+            <MessageCircle className="h-5 w-5 text-white" fill="currentColor" />
+          </div>
+          <div>
+            <h3 className="font-display font-semibold text-admin-text">WhatsApp Widget</h3>
+            <p className="text-xs text-admin-text-muted">Configure the floating chat button on your storefront</p>
+          </div>
         </div>
 
-        <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-          <Save className="h-4 w-4" /> Save Settings
-        </Button>
+        <div>
+          <label className="text-sm font-medium text-admin-text-muted block mb-1">WhatsApp Number (with country code)</label>
+          <Input
+            value={form.whatsappNumber}
+            onChange={e => setForm({ ...form, whatsappNumber: e.target.value })}
+            placeholder="+923001234567"
+            className="bg-admin-surface border-admin-border text-admin-text"
+          />
+          <p className="text-[10px] text-admin-text-muted mt-1">
+            Leave empty to hide the widget. {waPreview && (
+              <>Link preview: <span className="font-mono">wa.me/{waPreview}</span></>
+            )}
+          </p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-admin-text-muted block mb-1">Pre-filled Message</label>
+          <Textarea
+            value={form.whatsappMessage}
+            onChange={e => setForm({ ...form, whatsappMessage: e.target.value })}
+            placeholder="Hi! I'd like to know more about your products."
+            className="bg-admin-surface border-admin-border text-admin-text"
+            rows={2}
+          />
+        </div>
       </div>
+
+      <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+        <Save className="h-4 w-4" /> Save Settings
+      </Button>
     </motion.div>
   );
 }
