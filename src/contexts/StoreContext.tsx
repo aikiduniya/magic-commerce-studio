@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { extractColorsFromImage, applyThemeColors, ExtractedColors } from "@/utils/colorExtractor";
+import mkLogo from "@/assets/mk-logo.png";
+import mkHero from "@/assets/mk-hero.jpeg";
 
 export interface Product {
   id: string;
@@ -37,6 +39,7 @@ export interface Order {
   total: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   date: string;
+  paymentMethod?: "card" | "cod";
 }
 
 export interface Visitor {
@@ -47,11 +50,23 @@ export interface Visitor {
   country: string;
 }
 
+export interface Coupon {
+  id: string;
+  code: string;
+  label: string;
+  discountType: "flat" | "percentage";
+  value: number;
+  active: boolean;
+}
+
 export interface StoreSettings {
   name: string;
   logo: string;
   email: string;
   phone: string;
+  currency: string;
+  whatsappNumber: string;
+  whatsappMessage: string;
   themeColors: ExtractedColors;
 }
 
@@ -74,14 +89,21 @@ interface StoreContextType {
   addBanner: (b: Banner) => void;
   updateBanner: (id: string, b: Partial<Banner>) => void;
   deleteBanner: (id: string) => void;
+  coupons: Coupon[];
+  addCoupon: (c: Coupon) => void;
+  updateCoupon: (id: string, c: Partial<Coupon>) => void;
+  deleteCoupon: (id: string) => void;
 }
 
 const defaultSettings: StoreSettings = {
-  name: "LUXE Store",
-  logo: "",
-  email: "hello@luxestore.com",
-  phone: "+1 (555) 123-4567",
-  themeColors: { primary: "220 90% 56%", secondary: "220 14% 94%", accent: "340 82% 52%" },
+  name: "M&K Gents Store",
+  logo: mkLogo,
+  email: "hello@mkgents.com",
+  phone: "+92 300 0000000",
+  currency: "Rs.",
+  whatsappNumber: "+923000000000",
+  whatsappMessage: "Hi M&K Gents! I'd like to know more about your products.",
+  themeColors: { primary: "40 45% 45%", secondary: "30 10% 92%", accent: "40 60% 55%" },
 };
 
 const defaultCategories: Category[] = [
@@ -92,38 +114,34 @@ const defaultCategories: Category[] = [
 ];
 
 const defaultProducts: Product[] = [
-  { id: "1", name: "Wireless Headphones Pro", price: 299, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", category: "Electronics", stock: 45, description: "Premium noise-cancelling headphones", featured: true },
-  { id: "2", name: "Smart Watch Ultra", price: 499, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", category: "Electronics", stock: 23, description: "Advanced fitness & health tracker", featured: true },
-  { id: "3", name: "Leather Jacket", price: 189, image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400", category: "Fashion", stock: 15, description: "Classic Italian leather jacket" },
-  { id: "4", name: "Minimalist Desk Lamp", price: 79, image: "https://images.unsplash.com/photo-1507473885765-e6ed057ab6fe?w=400", category: "Home & Living", stock: 60, description: "Modern LED desk lamp" },
-  { id: "5", name: "Running Shoes X", price: 159, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", category: "Sports", stock: 38, description: "Ultra-lightweight running shoes", featured: true },
-  { id: "6", name: "Portable Speaker", price: 129, image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", category: "Electronics", stock: 52, description: "Waterproof bluetooth speaker" },
-  { id: "7", name: "Silk Scarf", price: 65, image: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", category: "Fashion", stock: 30, description: "Hand-crafted silk scarf" },
-  { id: "8", name: "Ceramic Vase Set", price: 95, image: "https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=400", category: "Home & Living", stock: 20, description: "Artisan ceramic vase set" },
+  { id: "1", name: "Wireless Headphones Pro", price: 29999, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", category: "Electronics", stock: 45, description: "Premium noise-cancelling headphones", featured: true },
+  { id: "2", name: "Smart Watch Ultra", price: 49999, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", category: "Electronics", stock: 23, description: "Advanced fitness & health tracker", featured: true },
+  { id: "3", name: "Leather Jacket", price: 18999, image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400", category: "Fashion", stock: 15, description: "Classic Italian leather jacket" },
+  { id: "4", name: "Minimalist Desk Lamp", price: 7999, image: "https://images.unsplash.com/photo-1507473885765-e6ed057ab6fe?w=400", category: "Home & Living", stock: 60, description: "Modern LED desk lamp" },
+  { id: "5", name: "Running Shoes X", price: 15999, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400", category: "Sports", stock: 38, description: "Ultra-lightweight running shoes", featured: true },
+  { id: "6", name: "Portable Speaker", price: 12999, image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400", category: "Electronics", stock: 52, description: "Waterproof bluetooth speaker" },
+  { id: "7", name: "Silk Scarf", price: 6500, image: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400", category: "Fashion", stock: 30, description: "Hand-crafted silk scarf" },
+  { id: "8", name: "Ceramic Vase Set", price: 9500, image: "https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=400", category: "Home & Living", stock: 20, description: "Artisan ceramic vase set" },
 ];
 
-const defaultOrders: Order[] = [
-  { id: "ORD-001", customer: "Alice Johnson", email: "alice@email.com", items: [{ productId: "1", name: "Wireless Headphones Pro", qty: 1, price: 299 }], total: 299, status: "delivered", date: "2026-03-01" },
-  { id: "ORD-002", customer: "Bob Smith", email: "bob@email.com", items: [{ productId: "2", name: "Smart Watch Ultra", qty: 1, price: 499 }, { productId: "4", name: "Minimalist Desk Lamp", qty: 2, price: 158 }], total: 657, status: "shipped", date: "2026-03-04" },
-  { id: "ORD-003", customer: "Carol Williams", email: "carol@email.com", items: [{ productId: "5", name: "Running Shoes X", qty: 1, price: 159 }], total: 159, status: "processing", date: "2026-03-06" },
-  { id: "ORD-004", customer: "David Lee", email: "david@email.com", items: [{ productId: "3", name: "Leather Jacket", qty: 1, price: 189 }], total: 189, status: "pending", date: "2026-03-08" },
-];
+const defaultOrders: Order[] = [];
 
 const defaultVisitors: Visitor[] = [
-  { id: "v1", page: "/", date: "2026-03-08", device: "Desktop", country: "US" },
-  { id: "v2", page: "/products", date: "2026-03-08", device: "Mobile", country: "UK" },
-  { id: "v3", page: "/products/1", date: "2026-03-07", device: "Desktop", country: "DE" },
-  { id: "v4", page: "/", date: "2026-03-07", device: "Tablet", country: "FR" },
-  { id: "v5", page: "/products/2", date: "2026-03-06", device: "Mobile", country: "US" },
-  { id: "v6", page: "/categories", date: "2026-03-06", device: "Desktop", country: "CA" },
-  { id: "v7", page: "/", date: "2026-03-05", device: "Mobile", country: "AU" },
-  { id: "v8", page: "/products/5", date: "2026-03-05", device: "Desktop", country: "US" },
+  { id: "v1", page: "/", date: "2026-03-08", device: "Desktop", country: "PK" },
+  { id: "v2", page: "/products", date: "2026-03-08", device: "Mobile", country: "PK" },
+  { id: "v3", page: "/products/1", date: "2026-03-07", device: "Desktop", country: "AE" },
+  { id: "v4", page: "/", date: "2026-03-07", device: "Tablet", country: "PK" },
 ];
 
 const defaultBanners: Banner[] = [
-  { id: "1", title: "Spring Collection 2026", subtitle: "Discover our latest arrivals with up to 40% off", image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920", buttonText: "Shop Now", buttonLink: "#products", active: true },
-  { id: "2", title: "Premium Electronics", subtitle: "The latest tech at unbeatable prices", image: "https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1920", buttonText: "Explore", buttonLink: "#products", active: true },
-  { id: "3", title: "Free Shipping", subtitle: "On all orders over $100 this week only", image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1920", buttonText: "Learn More", buttonLink: "#features", active: true },
+  { id: "1", title: "M&K Gents Store", subtitle: "Premium accessories crafted for the modern gentleman", image: mkHero, buttonText: "Shop the Collection", buttonLink: "#products", active: true },
+  { id: "2", title: "Premium Leather", subtitle: "Hand-crafted essentials, timeless style", image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1920", buttonText: "Explore", buttonLink: "#products", active: true },
+];
+
+const defaultCoupons: Coupon[] = [
+  { id: "c1", code: "SAVE10", label: "10% Off", discountType: "percentage", value: 10, active: true },
+  { id: "c2", code: "WELCOME", label: "Welcome Rs. 500 Off", discountType: "flat", value: 500, active: true },
+  { id: "c3", code: "MK20", label: "20% Off M&K Special", discountType: "percentage", value: 20, active: true },
 ];
 
 const StoreContext = createContext<StoreContextType | null>(null);
@@ -136,20 +154,24 @@ function loadState<T>(key: string, fallback: T): T {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<StoreSettings>(() => loadState("store-settings", defaultSettings));
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    const loaded = loadState<Partial<StoreSettings>>("store-settings-v2", defaultSettings);
+    return { ...defaultSettings, ...loaded };
+  });
   const [products, setProducts] = useState<Product[]>(() => loadState("store-products", defaultProducts));
   const [categories, setCategories] = useState<Category[]>(() => loadState("store-categories", defaultCategories));
-  const [orders, setOrders] = useState<Order[]>(() => loadState("store-orders", defaultOrders));
+  const [orders, setOrders] = useState<Order[]>(() => loadState("store-orders-v2", defaultOrders));
   const [visitors] = useState<Visitor[]>(() => loadState("store-visitors", defaultVisitors));
-  const [banners, setBanners] = useState<Banner[]>(() => loadState("store-banners", defaultBanners));
+  const [banners, setBanners] = useState<Banner[]>(() => loadState("store-banners-v2", defaultBanners));
+  const [coupons, setCoupons] = useState<Coupon[]>(() => loadState("store-coupons-v2", defaultCoupons));
 
-  useEffect(() => { localStorage.setItem("store-settings", JSON.stringify(settings)); }, [settings]);
+  useEffect(() => { localStorage.setItem("store-settings-v2", JSON.stringify(settings)); }, [settings]);
   useEffect(() => { localStorage.setItem("store-products", JSON.stringify(products)); }, [products]);
   useEffect(() => { localStorage.setItem("store-categories", JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem("store-orders", JSON.stringify(orders)); }, [orders]);
-  useEffect(() => { localStorage.setItem("store-banners", JSON.stringify(banners)); }, [banners]);
+  useEffect(() => { localStorage.setItem("store-orders-v2", JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem("store-banners-v2", JSON.stringify(banners)); }, [banners]);
+  useEffect(() => { localStorage.setItem("store-coupons-v2", JSON.stringify(coupons)); }, [coupons]);
 
-  // Apply theme on mount
   useEffect(() => {
     if (settings.themeColors) applyThemeColors(settings.themeColors);
   }, []);
@@ -187,6 +209,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       email: data.email,
       items: data.items,
       total: data.total,
+      paymentMethod: data.paymentMethod,
     };
     setOrders(prev => [newOrder, ...prev]);
     return newOrder;
@@ -197,6 +220,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setBanners(prev => prev.map(item => item.id === id ? { ...item, ...b } : item));
   const deleteBanner = (id: string) => setBanners(prev => prev.filter(b => b.id !== id));
 
+  const addCoupon = (c: Coupon) => setCoupons(prev => [...prev, c]);
+  const updateCoupon = (id: string, c: Partial<Coupon>) =>
+    setCoupons(prev => prev.map(item => item.id === id ? { ...item, ...c } : item));
+  const deleteCoupon = (id: string) => setCoupons(prev => prev.filter(c => c.id !== id));
+
   return (
     <StoreContext.Provider value={{
       settings, updateSettings,
@@ -205,6 +233,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       orders, addOrder, updateOrderStatus,
       visitors,
       banners, addBanner, updateBanner, deleteBanner,
+      coupons, addCoupon, updateCoupon, deleteCoupon,
     }}>
       {children}
     </StoreContext.Provider>
