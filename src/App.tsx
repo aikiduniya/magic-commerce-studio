@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { StoreProvider } from "@/contexts/StoreContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
+import RequireAdmin from "@/components/RequireAdmin";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
 import Storefront from "./pages/Storefront";
@@ -13,6 +15,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Categories from "./pages/Categories";
 import CategoryDetail from "./pages/CategoryDetail";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
