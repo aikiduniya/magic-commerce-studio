@@ -2,7 +2,18 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, Product } from "@/contexts/StoreContext";
 import { useCart } from "@/contexts/CartContext";
-import { ShoppingBag, ArrowRight, Star, Truck, Shield, Headphones, ShoppingCart, Search, X, SlidersHorizontal } from "lucide-react";
+import {
+  ShoppingBag,
+  ArrowRight,
+  Star,
+  Truck,
+  Shield,
+  Headphones,
+  ShoppingCart,
+  Search,
+  X,
+  SlidersHorizontal,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +24,8 @@ import BannerSlider from "@/components/BannerSlider";
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
-    opacity: 1, y: 0,
+    opacity: 1,
+    y: 0,
     transition: { delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
@@ -25,7 +37,7 @@ const stagger = {
 export default function Storefront() {
   const { settings, products, categories } = useStore();
   const { totalItems, setIsCartOpen } = useCart();
-  const featured = products.filter(p => p.featured);
+  const featured = products.filter((p) => p.featured);
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +47,8 @@ export default function Storefront() {
   // Filter products
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesSearch = searchQuery === "" || 
+      const matchesSearch =
+        searchQuery === "" ||
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === null || product.category === selectedCategory;
@@ -70,17 +83,27 @@ export default function Storefront() {
             <span className="font-display text-xl font-bold text-foreground">{settings.name}</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#products" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Products</a>
-            <a href="#categories" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Categories</a>
-            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</a>
+            <a
+              href="#products"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Products
+            </a>
+            <a
+              href="#categories"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Categories
+            </a>
+            <a
+              href="#features"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              About
+            </a>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              className="relative"
-              onClick={() => setIsCartOpen(true)}
-            >
+            <Button variant="outline" size="icon" className="relative" onClick={() => setIsCartOpen(true)}>
               <ShoppingCart className="h-4 w-4" />
               {totalItems > 0 && (
                 <motion.span
@@ -93,11 +116,11 @@ export default function Storefront() {
                 </motion.span>
               )}
             </Button>
-            <Link to="/admin">
+            {/* <Link to="/admin">
               <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 Admin Panel
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </motion.nav>
@@ -137,7 +160,11 @@ export default function Storefront() {
       {/* Featured Products */}
       <section id="products" className="max-w-7xl mx-auto px-6 py-20">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.h2 variants={fadeUp} custom={0} className="font-display text-3xl md:text-4xl font-bold text-foreground">
+          <motion.h2
+            variants={fadeUp}
+            custom={0}
+            className="font-display text-3xl md:text-4xl font-bold text-foreground"
+          >
             Featured Products
           </motion.h2>
           <motion.p variants={fadeUp} custom={1} className="mt-2 text-muted-foreground">
@@ -229,10 +256,7 @@ export default function Storefront() {
             {/* Products Grid */}
             <AnimatePresence mode="popLayout">
               {filteredProducts.length > 0 ? (
-                <motion.div 
-                  layout
-                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
-                >
+                <motion.div layout className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                   {filteredProducts.map((product, i) => (
                     <div key={product.id} onClick={() => setQuickViewProduct(product)}>
                       <ProductCard product={product} index={i} variant="compact" />
@@ -264,7 +288,9 @@ export default function Storefront() {
       {/* Categories */}
       <section id="categories" className="max-w-7xl mx-auto px-6 py-20">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.h2 variants={fadeUp} custom={0} className="font-display text-3xl font-bold text-foreground">Shop by Category</motion.h2>
+          <motion.h2 variants={fadeUp} custom={0} className="font-display text-3xl font-bold text-foreground">
+            Shop by Category
+          </motion.h2>
           <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-5">
             {categories.map((cat, i) => (
               <motion.div
@@ -278,7 +304,11 @@ export default function Storefront() {
                 }}
                 className="relative rounded-xl overflow-hidden aspect-[4/5] group cursor-pointer"
               >
-                <img src={cat.image} alt={cat.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 to-transparent" />
                 <div className="absolute bottom-4 left-4">
                   <h3 className="font-display font-bold text-primary-foreground text-lg">{cat.name}</h3>
