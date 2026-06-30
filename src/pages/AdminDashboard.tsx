@@ -41,6 +41,15 @@ const fadeIn = {
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { currentAdmin, logout } = useAdminAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    toast({ title: "Signed out", description: "You have been logged out." });
+    navigate("/admin/login");
+  };
+
 
   return (
     <div className="min-h-screen flex" style={{ background: "hsl(var(--admin-bg))" }}>
