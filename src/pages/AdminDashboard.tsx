@@ -28,6 +28,7 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "coupons", label: "Coupons", icon: Tag },
   { id: "visitors", label: "Visitors", icon: Users },
+  { id: "admins", label: "Admins", icon: ShieldCheck },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
