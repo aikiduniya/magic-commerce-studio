@@ -1,20 +1,24 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, Product, Category, Banner, Coupon } from "@/contexts/StoreContext";
-import { Link } from "react-router-dom";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderOpen, ShoppingCart, Users, Settings,
   Plus, Trash2, Edit, ArrowLeft, Upload, TrendingUp, DollarSign,
-  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles, Tag, MessageCircle
+  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles, Tag, MessageCircle,
+  ShieldCheck, LogOut, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import ImageUploadField from "@/components/ImageUploadField";
 import { formatCurrency } from "@/lib/currency";
+import { toast } from "@/hooks/use-toast";
 
-type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "coupons" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "coupons" | "admins" | "settings";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -24,6 +28,7 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "coupons", label: "Coupons", icon: Tag },
   { id: "visitors", label: "Visitors", icon: Users },
+  { id: "admins", label: "Admins", icon: ShieldCheck },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
@@ -36,6 +41,15 @@ const fadeIn = {
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { currentAdmin, logout } = useAdminAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    toast({ title: "Signed out", description: "You have been logged out." });
+    navigate("/admin/login");
+  };
+
 
   return (
     <div className="min-h-screen flex" style={{ background: "hsl(var(--admin-bg))" }}>
@@ -90,6 +104,22 @@ export default function AdminDashboard() {
             </button>
             <h1 className="font-display text-xl font-bold text-admin-text capitalize">{activeTab}</h1>
           </div>
+          <div className="flex items-center gap-3">
+            {currentAdmin && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-admin-surface-hover">
+                <div className="h-7 w-7 rounded-full hero-gradient flex items-center justify-center text-xs font-bold text-primary-foreground">
+                  {(currentAdmin.name || currentAdmin.email).charAt(0).toUpperCase()}
+                </div>
+                <div className="text-xs leading-tight">
+                  <div className="font-medium text-admin-text">{currentAdmin.name || "Admin"}</div>
+                  <div className="text-admin-text-muted">{currentAdmin.email}</div>
+                </div>
+              </div>
+            )}
+            <Button onClick={handleLogout} variant="outline" size="sm" className="gap-2 border-admin-border text-admin-text-muted hover:text-admin-text hover:bg-admin-surface-hover">
+              <LogOut className="h-4 w-4" /> Logout
+            </Button>
+          </div>
         </header>
         <main className="p-6">
           <AnimatePresence mode="wait">
@@ -100,6 +130,7 @@ export default function AdminDashboard() {
             {activeTab === "orders" && <OrdersPanel key="orders" />}
             {activeTab === "coupons" && <CouponsPanel key="coupons" />}
             {activeTab === "visitors" && <VisitorsPanel key="visitors" />}
+            {activeTab === "admins" && <AdminsPanel key="admins" />}
             {activeTab === "settings" && <SettingsPanel key="settings" />}
           </AnimatePresence>
         </main>
@@ -835,5 +866,97 @@ function StatusBadge({ status }: { status: string }) {
     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${colors[status] || ""}`}>
       {status}
     </span>
+  );
+}
+
+function AdminsPanel() {
+  const { admins, currentAdmin, createAdmin, deleteAdmin } = useAdminAuth();
+  const [form, setForm] = useState({ email: "", password: "", name: "" });
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = createAdmin(form.email, form.password, form.name);
+    if (!res.ok) {
+      toast({ title: "Could not create admin", description: res.error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Admin created", description: `${form.email} can now sign in.` });
+    setForm({ email: "", password: "", name: "" });
+  };
+
+  const handleDelete = (email: string) => {
+    if (email.toLowerCase() === currentAdmin?.email.toLowerCase()) {
+      toast({ title: "Action blocked", description: "You cannot delete your own account while signed in.", variant: "destructive" });
+      return;
+    }
+    if (admins.length <= 1) {
+      toast({ title: "Action blocked", description: "At least one admin must exist.", variant: "destructive" });
+      return;
+    }
+    deleteAdmin(email);
+    toast({ title: "Admin removed", description: email });
+  };
+
+  return (
+    <motion.div variants={fadeIn} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+      <div className="admin-card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <UserPlus className="h-5 w-5 text-primary" />
+          <h2 className="font-display font-bold text-admin-text">Create New Admin</h2>
+        </div>
+        <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-admin-text-muted text-xs">Name (optional)</Label>
+            <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="John Doe" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-admin-text-muted text-xs">Email</Label>
+            <Input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="admin@mkstore.com" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-admin-text-muted text-xs">Password (min 6)</Label>
+            <Input type="text" required value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="••••••" />
+          </div>
+          <div className="flex items-end">
+            <Button type="submit" className="w-full hero-gradient text-primary-foreground gap-2">
+              <Plus className="h-4 w-4" /> Add Admin
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      <div className="admin-card p-6">
+        <h2 className="font-display font-bold text-admin-text mb-4">All Admins ({admins.length})</h2>
+        <div className="space-y-2">
+          {admins.map(a => {
+            const isMe = a.email.toLowerCase() === currentAdmin?.email.toLowerCase();
+            return (
+              <div key={a.email} className="flex items-center justify-between p-3 rounded-lg bg-admin-surface-hover">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full hero-gradient flex items-center justify-center text-sm font-bold text-primary-foreground">
+                    {(a.name || a.email).charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-admin-text flex items-center gap-2">
+                      {a.name || "Admin"}
+                      {isMe && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">YOU</span>}
+                    </div>
+                    <div className="text-xs text-admin-text-muted">{a.email}</div>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost" size="icon"
+                  onClick={() => handleDelete(a.email)}
+                  disabled={isMe}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 disabled:opacity-30"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
   );
 }
