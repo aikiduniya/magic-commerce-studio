@@ -1,20 +1,24 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, Product, Category, Banner, Coupon } from "@/contexts/StoreContext";
-import { Link } from "react-router-dom";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderOpen, ShoppingCart, Users, Settings,
   Plus, Trash2, Edit, ArrowLeft, Upload, TrendingUp, DollarSign,
-  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles, Tag, MessageCircle
+  Eye, Box, ChevronDown, X, Save, Image as ImageIcon, Sparkles, Tag, MessageCircle,
+  ShieldCheck, LogOut, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import ImageUploadField from "@/components/ImageUploadField";
 import { formatCurrency } from "@/lib/currency";
+import { toast } from "@/hooks/use-toast";
 
-type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "coupons" | "settings";
+type Tab = "dashboard" | "products" | "categories" | "orders" | "visitors" | "banners" | "coupons" | "admins" | "settings";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
