@@ -104,6 +104,22 @@ export default function AdminDashboard() {
             </button>
             <h1 className="font-display text-xl font-bold text-admin-text capitalize">{activeTab}</h1>
           </div>
+          <div className="flex items-center gap-3">
+            {currentAdmin && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-admin-surface-hover">
+                <div className="h-7 w-7 rounded-full hero-gradient flex items-center justify-center text-xs font-bold text-primary-foreground">
+                  {(currentAdmin.name || currentAdmin.email).charAt(0).toUpperCase()}
+                </div>
+                <div className="text-xs leading-tight">
+                  <div className="font-medium text-admin-text">{currentAdmin.name || "Admin"}</div>
+                  <div className="text-admin-text-muted">{currentAdmin.email}</div>
+                </div>
+              </div>
+            )}
+            <Button onClick={handleLogout} variant="outline" size="sm" className="gap-2 border-admin-border text-admin-text-muted hover:text-admin-text hover:bg-admin-surface-hover">
+              <LogOut className="h-4 w-4" /> Logout
+            </Button>
+          </div>
         </header>
         <main className="p-6">
           <AnimatePresence mode="wait">
@@ -114,6 +130,7 @@ export default function AdminDashboard() {
             {activeTab === "orders" && <OrdersPanel key="orders" />}
             {activeTab === "coupons" && <CouponsPanel key="coupons" />}
             {activeTab === "visitors" && <VisitorsPanel key="visitors" />}
+            {activeTab === "admins" && <AdminsPanel key="admins" />}
             {activeTab === "settings" && <SettingsPanel key="settings" />}
           </AnimatePresence>
         </main>
