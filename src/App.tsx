@@ -27,22 +27,25 @@ const App = () => (
       <Toaster />
       <Sonner />
       <StoreProvider>
-        <CartProvider>
-          <BrowserRouter>
-            <CartDrawer />
-            <WhatsAppWidget />
-            <Routes>
-              <Route path="/" element={<Storefront />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/categories/:slug" element={<CategoryDetail />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
+        <AdminAuthProvider>
+          <CartProvider>
+            <BrowserRouter>
+              <CartDrawer />
+              <WhatsAppWidget />
+              <Routes>
+                <Route path="/" element={<Storefront />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/categories/:slug" element={<CategoryDetail />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </CartProvider>
+        </AdminAuthProvider>
       </StoreProvider>
     </TooltipProvider>
   </QueryClientProvider>
